@@ -19,6 +19,9 @@ class UtilsProvider:
 
 	@staticmethod
 	def __download_df():
+		parent = os.path.dirname(CURRENCY_DF_PATH)
+		if not os.path.exists(parent):
+			os.makedirs(parent)
 		print("Downloading DF...")
 		os.system(f"wget --no-verbose \"{CURRENCY_DF_URL}\" -O \"{CURRENCY_DF_PATH}\"")
 
