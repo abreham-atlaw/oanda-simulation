@@ -82,10 +82,10 @@ WSGI_APPLICATION = 'Oanda.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'oanda-simulation',
-        'USER': 'admin',
-        'PASSWORD': 'Dre4CWS5RuEg',
-        'HOST': 'ep-summer-feather-438765.eu-central-1.aws.neon.tech',
+        'NAME': 'oanda_db',
+        'USER': 'oanda',
+        'PASSWORD': '2vfShANv',
+        'HOST': 'postgresql-oanda.alwaysdata.net',
         'PORT': '',
     }
 }
