@@ -11,20 +11,30 @@ from utils.trading.data.repository import CurrencyRepository
 
 class DataFrameRepository(CurrencyRepository):
 	
-	def __init__(self, df: pd.DataFrame, time_delta: int, spread_cost_percentage: float):
-		self.df = df
-		self.df["time"] = pd.to_datetime(self.df["time"])
+	def __init__(self, df: pd.DataFrame, time_delta: int, spread_cost_percentage: float, delta_multiplier: float = 1):
+		self.df = self.__prepare_df(df)
 		self.__timedelta = timedelta(minutes=time_delta)
 		self.__spread_cost = spread_cost_percentage
+		self.__delta_multiplier = delta_multiplier
+		self.__start_datetime = self.__translate_time(datetime.now(), multiply=False)
+
+	@staticmethod
+	def __prepare_df(df: pd.DataFrame) -> pd.DataFrame:
+		df["time"] = pd.to_datetime(df["time"])
+		return df.drop_duplicates(subset="time")
 
 	@property
 	def __current_datetime(self) -> datetime:
 		return self.__translate_time(datetime.now())
 
-	def __translate_time(self, date) -> datetime:
+	def __translate_time(self, date, multiply=True) -> datetime:
 		if date.tzinfo is None:
 			date = date .replace(tzinfo=timezone("UTC"))
-		return date - self.__timedelta
+		date = date - self.__timedelta
+		if not multiply:
+			return date
+
+		return self.__start_datetime + (date - self.__start_datetime) * self.__delta_multiplier
 
 	def __get_instrument_df(self, instrument: Instrument) -> pd.DataFrame:
 		instrument_df = self.df[

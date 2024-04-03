@@ -31,7 +31,7 @@ class GetCandlestickView(APIView):
 		count = int(request.query_params.get("count"))
 		granularity = self.__get_granularity(request.query_params.get("granularity"))
 
-		repository = UtilsProvider.provide_repository(request.account.time_delta)
+		repository = UtilsProvider.provide_repository(request.account)
 
 		candlestick = repository.get_candlestick(
 			granularity=granularity,
