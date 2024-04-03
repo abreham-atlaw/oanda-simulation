@@ -9,7 +9,7 @@ from di.utils_provider import UtilsProvider
 class GetInstrumentsView(APIView):
 
 	def get(self, request, *args, **kwargs):
-		repository = UtilsProvider.provide_repository(request.account.time_delta)
+		repository = UtilsProvider.provide_repository(request.account)
 		instruments = repository.get_instruments()
 
 		serializer = FullInstrumentSerializer(instance=instruments, many=True)

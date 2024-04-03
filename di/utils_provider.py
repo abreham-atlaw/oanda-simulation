@@ -34,16 +34,21 @@ class UtilsProvider:
 
 
 	@staticmethod
-	def provide_repository(time_delta: int) -> CurrencyRepository:
-		repository = UtilsProvider.__repositories.get(time_delta)
+	def provide_repository(account: Account) -> CurrencyRepository:
+
+		def __get_key(account: Account) -> str:
+			return f"{account.time_delta},{account.detla_multiplier}"
+
+		repository = UtilsProvider.__repositories.get(__get_key(account))
 
 		if repository is None:
 			repository = DataFrameRepository(
 				df=UtilsProvider.provide_df(),
-				time_delta=time_delta,
-				spread_cost_percentage=SPREAD_COST_PERCENTAGE
+				time_delta=account.time_delta,
+				spread_cost_percentage=SPREAD_COST_PERCENTAGE,
+				delta_multiplier=account.detla_multiplier
 			)
-			UtilsProvider.__repositories[time_delta] = repository
+			UtilsProvider.__repositories[__get_key(account)] = repository
 
 		return repository
 
@@ -54,9 +59,8 @@ class UtilsProvider:
 
 		if manager is None:
 			manager = TradeManager(
-				repository=UtilsProvider.provide_repository(time_delta)
+				repository=UtilsProvider.provide_repository(account)
 			)
-			UtilsProvider.__managers[time_delta] = manager
+			UtilsProvider.__managers[f"{account.time_delta},{account.detla_multiplier}"] = manager
 
 		return manager
-

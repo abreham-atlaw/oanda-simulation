@@ -9,7 +9,7 @@ from di.utils_provider import UtilsProvider
 class GetPricingView(APIView):
 
 	def get(self, request: Request, *args, **kwargs):
-		repository = UtilsProvider.provide_repository(request.account.time_delta)
+		repository = UtilsProvider.provide_repository(request.account)
 		instrument = request.query_params.get("instruments")
 		serializer = InstrumentSerializer(data=instrument)
 		serializer.is_valid(raise_exception=True)
