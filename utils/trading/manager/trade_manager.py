@@ -16,7 +16,7 @@ class TradeManager:
 	def __get_margin_required(self, account: Account, units, instrument, price=None):
 		if price is None:
 			price = self.__repository.get_price(instrument)
-		return account.margin_rate * self.__repository.convert(price * units, (instrument[1], account.currency))
+		return account.margin_rate * self.__repository.convert(price * abs(units), (instrument[1], account.currency))
 
 	def get_unrealized_pl(self, trade: Trade) -> float:
 		if trade.state == Trade.State.closed:
@@ -65,8 +65,6 @@ class TradeManager:
 			instrument=instrument,
 			price=price
 		)
-		account.balance -= margin_required
-		account.save()
 
 		return Trade.objects.create(
 			account=account,
