@@ -135,7 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 RES_PATH = BASE_DIR / "res/"
 
-CURRENCY_DF_URL = "https://www.dropbox.com/scl/fi/m3gjmbvif1fz3vg5bz9lm/AUD-USD.csv?rlkey=piod5flcvreghuoa7k3plfp5n&dl=0&raw=1"
+CURRENCY_DF_URL = "https://docs.google.com/uc?export=download&id=1p48nXH5mJCkvomN2MtumacSrjnFxKLHq"
 CURRENCY_DF_PATH = RES_PATH / "data/AUD-USD-downloaded.csv"
 SPREAD_COST_PERCENTAGE = 0.00011941434659618314
 ACCOUNT_ID_KEY = "account_id"
