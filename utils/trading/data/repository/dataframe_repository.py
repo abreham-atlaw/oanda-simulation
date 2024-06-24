@@ -21,7 +21,9 @@ class DataFrameRepository(CurrencyRepository):
 	@staticmethod
 	def __prepare_df(df: pd.DataFrame) -> pd.DataFrame:
 		df["time"] = pd.to_datetime(df["time"])
-		return df.drop_duplicates(subset="time")
+		df = df.drop_duplicates(subset="time")
+		df = df.sort_values(by="time")
+		return df
 
 	@property
 	def __current_datetime(self) -> datetime:
@@ -56,7 +58,6 @@ class DataFrameRepository(CurrencyRepository):
 			df = self.__get_instrument_df(instrument)
 		if time is not None:
 			df = df[df["time"] <= time]
-		df = df.sort_values(by="time")
 		return df
 
 	def get_instruments(self) -> List[Instrument]:
