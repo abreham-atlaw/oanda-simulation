@@ -7,4 +7,3 @@ mkdir -p res/data/
 wget "https://drive.usercontent.google.com/download?id=1ABQDDMIZpzC6BNebzIZ3ssrxL0lo3ilw&export=download&confirm=t&uuid=9f38f336-fc3d-412c-86ba-a429f352208f" -O "res/data/AUD-USD.zip"
 unzip "res/data/AUD-USD.zip" -d "res/data/"
 
-https://drive.google.com/file/d/1ABQDDMIZpzC6BNebzIZ3ssrxL0lo3ilw/view?usp=sharing
