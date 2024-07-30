@@ -24,11 +24,19 @@ class CurrencyRepository(ABC):
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> typing.List[Candlestick]:
 		pass
 
-	def get_ask_price(self, instrument: Instrument) -> float:
-		return self.get_price(instrument) + (self.get_spread_cost(instrument)/2)
+	def get_ask_price(self, instrument: Instrument, price: typing.Optional[float] = None) -> float:
+		if price is None:
+			price = self.get_price(instrument)
+		return price + (self.get_spread_cost(instrument)/2)
 
-	def get_bid_price(self, instrument: Instrument):
-		return self.get_price(instrument) - (self.get_spread_cost(instrument)/2)
+	def get_bid_price(self, instrument: Instrument, price: typing.Optional[float] = None):
+		if price is None:
+			price = self.get_price(instrument)
+		return price - (self.get_spread_cost(instrument)/2)
+
+	def get_bid_ask_pair(self, instrument: Instrument) -> typing.Tuple[float, float]:
+		price = self.get_price(instrument)
+		return self.get_bid_price(instrument, price=price), self.get_ask_price(instrument, price=price)
 
 	def convert(self, units: float, instrument: Instrument) -> float:
 		if instrument[0] == instrument[1]:
