@@ -14,8 +14,7 @@ class GetPricingView(APIView):
 		serializer = InstrumentSerializer(data=instrument)
 		serializer.is_valid(raise_exception=True)
 
-		bid_price = repository.get_bid_price(serializer.validated_data)
-		ask_price = repository.get_ask_price(serializer.validated_data)
+		bid_price, ask_price = repository.get_bid_ask_pair(serializer.validated_data)
 
 		return Response(
 			data={
