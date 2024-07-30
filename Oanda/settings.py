@@ -79,14 +79,21 @@ WSGI_APPLICATION = 'Oanda.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'oanda-simulation',
+#         'USER': 'abrishatlaw',
+#         'PASSWORD': '9A1ciQJfbOFM',
+#         'HOST': 'ep-summer-feather-438765.eu-central-1.aws.neon.tech',
+#         'PORT': '',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'oanda-simulation',
-        'USER': 'abrishatlaw',
-        'PASSWORD': '9A1ciQJfbOFM',
-        'HOST': 'ep-summer-feather-438765.eu-central-1.aws.neon.tech',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
