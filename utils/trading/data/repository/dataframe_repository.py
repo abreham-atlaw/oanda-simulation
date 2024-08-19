@@ -71,7 +71,9 @@ class DataFrameRepository(CurrencyRepository):
 		df = self.__filter_df(instrument=instrument, time=self.__current_datetime)
 		return df['c'].iloc[-1]
 
-	def get_spread_cost(self, instrument: Instrument) -> float:
+	def get_spread_cost(self, instrument: Instrument, price: float = None) -> float:
+		if price is None:
+			price = self.get_price(instrument)
 		return self.get_price(instrument) * self.__spread_cost
 
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> List[Candlestick]:

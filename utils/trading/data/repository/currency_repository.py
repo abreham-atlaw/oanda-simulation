@@ -17,7 +17,7 @@ class CurrencyRepository(ABC):
 		pass
 
 	@abstractmethod
-	def get_spread_cost(self, instrument: Instrument) -> float:
+	def get_spread_cost(self, instrument: Instrument, price: typing.Optional[float] = None) -> float:
 		pass
 
 	@abstractmethod
@@ -27,12 +27,12 @@ class CurrencyRepository(ABC):
 	def get_ask_price(self, instrument: Instrument, price: typing.Optional[float] = None) -> float:
 		if price is None:
 			price = self.get_price(instrument)
-		return price + (self.get_spread_cost(instrument)/2)
+		return price + (self.get_spread_cost(instrument, price)/2)
 
 	def get_bid_price(self, instrument: Instrument, price: typing.Optional[float] = None):
 		if price is None:
 			price = self.get_price(instrument)
-		return price - (self.get_spread_cost(instrument)/2)
+		return price - (self.get_spread_cost(instrument, price)/2)
 
 	def get_bid_ask_pair(self, instrument: Instrument) -> typing.Tuple[float, float]:
 		price = self.get_price(instrument)
