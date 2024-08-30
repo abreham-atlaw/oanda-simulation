@@ -4,6 +4,7 @@ from datetime import datetime
 
 from apps.authentication.models import Account
 from apps.core.models import Trade
+from utils.devtools import stats
 from utils.trading.data.models import Instrument
 from utils.trading.data.repository import CurrencyRepository
 
@@ -18,6 +19,7 @@ class TradeManager:
 			price = self.__repository.get_price(instrument)
 		return account.margin_rate * self.__repository.convert(price * abs(units), (instrument[1], account.currency))
 
+	@stats.track_func(key="TradeManager.get_unrealized_pl")
 	def get_unrealized_pl(self, trade: Trade) -> float:
 		if trade.state == Trade.State.closed:
 			return 0
@@ -30,9 +32,11 @@ class TradeManager:
 			for trade in self.get_open_trades(account)
 		])
 
+	@stats.track_func(key="TradeManager.get_nav")
 	def get_nav(self, account: Account) -> float:
 		return account.balance + self.get_account_unrealized_pl(account)
 
+	@stats.track_func(key="TradeManager.get_margin_used")
 	def get_margin_used(self, trade: Trade):
 		return self.__get_margin_required(
 			account=trade.account,
@@ -46,9 +50,11 @@ class TradeManager:
 			for trade in self.get_open_trades(account)
 		])
 
+	@stats.track_func(key="TradeManager.get_margin_available")
 	def get_margin_available(self, account: Account) -> float:
 		return self.get_nav(account) - self.get_account_margin_used(account)
 
+	@stats.track_func(key="TradeManager.get_open_trades")
 	def get_open_trades(self, account: Account) -> typing.List[Trade]:
 		return Trade.objects.filter(account=account, close_time=None)
 
