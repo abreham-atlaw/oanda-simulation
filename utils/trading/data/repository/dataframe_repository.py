@@ -98,7 +98,7 @@ class DataFrameRepository(CurrencyRepository):
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> List[Candlestick]:
 		instrument_df = self.__filter_df(
 			instrument=instrument,
-			time=self.__round_time(self.__translate_time(to), gran=granularity)
+			time=self.__translate_time(to)
 		)
 		instrument_df = instrument_df.iloc[-count * granularity::granularity]
 
