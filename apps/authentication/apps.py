@@ -1,9 +1,10 @@
+import json
 import os
 
 from django.apps import AppConfig
 
 from Oanda.settings import LOCAL_DEFAULT_ACCOUNT_TIME_DELTA, LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER, \
-    LOCAL_DEFAULT_ACCOUNT_ENV_KEY, LOCAL_DEFAULT_ACCOUNT_BALANCE, CREATE_LOCAL_ACCOUNT
+    LOCAL_DEFAULT_ACCOUNT_BALANCE, CREATE_LOCAL_ACCOUNT, LOCAL_DEFAULT_ACCOUNT_FILE_PATH
 
 
 class AuthenticationConfig(AppConfig):
@@ -22,9 +23,9 @@ class AuthenticationConfig(AppConfig):
             time_delta=LOCAL_DEFAULT_ACCOUNT_TIME_DELTA,
             detla_multiplier=LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER
         )
-        os.environ[LOCAL_DEFAULT_ACCOUNT_ENV_KEY] = str(account.id)
         print(f"Created Account {account.id}({account.alias})")
-        print(os.environ)
+        with open(LOCAL_DEFAULT_ACCOUNT_FILE_PATH, "w") as f:
+            json.dump(str(account.id), f)
 
     def ready(self):
         if CREATE_LOCAL_ACCOUNT:
