@@ -27,4 +27,7 @@ class AuthenticationConfig(AppConfig):
 
     def ready(self):
         if CREATE_LOCAL_ACCOUNT:
-            self.__create_local_account()
+            try:
+                self.__create_local_account()
+            except Exception as e:
+                print(f"Failed to create Local Account: {e}")
