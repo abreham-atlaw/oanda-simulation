@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 
-from Oanda.settings import BASE_DIR
+from Oanda.settings import BASE_DIR, STATS_DUMP_PATH
 
 durations = {
 
@@ -18,7 +18,11 @@ possible_state_visits = []
 valid_actions = []
 prediction_inputs = []
 
-stat_dump_path = os.path.join(BASE_DIR, f"tmp/stats_dump/{datetime.now().timestamp()}.json")
+stat_dump_path = STATS_DUMP_PATH
+
+if not os.path.exists(stat_dump_path):
+	print("Creating stats dump...")
+	os.makedirs(stat_dump_path)
 
 
 def track_stats(key, func):
