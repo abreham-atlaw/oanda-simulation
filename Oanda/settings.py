@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+import random
 from datetime import datetime
 from pathlib import Path
+
+from pytz import timezone
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -140,8 +143,11 @@ CURRENCY_DF_PATH = RES_PATH / "data/AUD-USD.csv"
 SPREAD_COST_PERCENTAGE = 0.00011941434659618314
 ACCOUNT_ID_KEY = "account_id"
 
-CREATE_LOCAL_ACCOUNT = False
-LOCAL_DEFAULT_ACCOUNT_TIME_DELTA = 3810869.28
+CREATE_LOCAL_ACCOUNT = True
+LOCAL_DEFAULT_ACCOUNT_TIME_DELTA = random.randint(*[
+    (datetime.now().replace(tzinfo=timezone("UTC")) - datetime.strptime(t, '%Y-%m-%d %H:%M:%S%z')).total_seconds()//60
+    for t in ['2023-09-22 08:30:00+00:00', '2011-03-14 22:41:00+00:00']
+])
 LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER = 4.94
 LOCAL_DEFAULT_ACCOUNT_BALANCE = 100.0
 LOCAL_DEFAULT_ACCOUNT_ENV_KEY = "OANDA_LOCAL_DEFAULT_ACCOUNT"
