@@ -24,6 +24,7 @@ class AuthenticationConfig(AppConfig):
         )
         os.environ[LOCAL_DEFAULT_ACCOUNT_ENV_KEY] = str(account.id)
         print(f"Created Account {account.id}({account.alias})")
+        print(os.environ)
 
     def ready(self):
         if CREATE_LOCAL_ACCOUNT:
