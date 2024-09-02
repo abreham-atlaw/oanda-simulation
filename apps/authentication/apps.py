@@ -3,7 +3,7 @@ import os
 from django.apps import AppConfig
 
 from Oanda.settings import LOCAL_DEFAULT_ACCOUNT_TIME_DELTA, LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER, \
-    LOCAL_DEFAULT_ACCOUNT_ENV_KEY, LOCAL_DEFAULT_ACCOUNT_BALANCE
+    LOCAL_DEFAULT_ACCOUNT_ENV_KEY, LOCAL_DEFAULT_ACCOUNT_BALANCE, CREATE_LOCAL_ACCOUNT
 
 
 class AuthenticationConfig(AppConfig):
@@ -26,4 +26,5 @@ class AuthenticationConfig(AppConfig):
         print(f"Created Account {account.id}({account.alias})")
 
     def ready(self):
-        self.__create_local_account()
+        if CREATE_LOCAL_ACCOUNT:
+            self.__create_local_account()

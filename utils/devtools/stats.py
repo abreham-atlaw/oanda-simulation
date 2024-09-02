@@ -20,7 +20,7 @@ prediction_inputs = []
 
 stat_dump_path = STATS_DUMP_PATH
 
-if not os.path.exists(stat_dump_path):
+if not os.path.exists(os.path.dirname(stat_dump_path)):
 	print("Creating stats dump...")
 	os.makedirs(stat_dump_path)
 
