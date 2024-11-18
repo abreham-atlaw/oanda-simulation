@@ -24,6 +24,7 @@ class Trade(models.Model):
 	quote_currency: str = models.CharField(max_length=3)
 	open_time: datetime = models.DateTimeField(auto_now_add=True)
 	close_time: typing.Optional[datetime] = models.DateTimeField(null=True)
+	close_price: typing.Optional[float] = models.FloatField(null=True)
 
 	@property
 	def state(self) -> str:
