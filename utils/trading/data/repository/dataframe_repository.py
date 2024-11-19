@@ -91,8 +91,10 @@ class DataFrameRepository(CurrencyRepository):
 		return df['c'].iloc[-1]
 
 	@stats.track_func(key="DataFrameRepository.get_spread_cost")
-	def get_spread_cost(self, instrument: Instrument) -> float:
-		return self.get_price(instrument) * self.__spread_cost
+	def get_spread_cost(self, instrument: Instrument, price: float = None) -> float:
+		if price is None:
+			price = self.get_price(instrument)
+		return price * self.__spread_cost
 
 	@stats.track_func(key="DataFrameRepository.get_candlestick")
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> List[Candlestick]:
