@@ -88,10 +88,10 @@ class TradeManager:
 		)
 
 	def close_trade(self, trade: Trade):
-		pl = self.get_unrealized_pl(trade)
+		pl, price = self.get_unrealized_pl(trade, include_price=True)
 		trade.realized_pl = pl
 		trade.close_time = datetime.now()
-		trade.close_price = self.__repository.get_price(trade.instrument)
+		trade.close_price = price
 		trade.save()
 
 		trade.account.balance += pl
