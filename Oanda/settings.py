@@ -153,8 +153,9 @@ ACCOUNT_ID_KEY = "account_id"
 CREATE_LOCAL_ACCOUNT = True
 LOCAL_DEFAULT_ACCOUNT_TIME_DELTA = random.randint(*[
     (datetime.now().replace(tzinfo=timezone("UTC")) - datetime.strptime(t, '%Y-%m-%d %H:%M:%S%z')).total_seconds()//60
-    for t in ['2023-09-22 08:30:00+00:00', '2011-03-14 22:41:00+00:00']
+    for t in ['2024-09-06 20:59:00+00:00', '2023-09-22 08:31:00+00:00']
 ])
+print('Using local account with time delta', LOCAL_DEFAULT_ACCOUNT_TIME_DELTA)
 LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER = 1.67
 LOCAL_DEFAULT_ACCOUNT_BALANCE = 100.0
 LOCAL_DEFAULT_ACCOUNT_FILE_PATH = RES_PATH / "local_account.json"
