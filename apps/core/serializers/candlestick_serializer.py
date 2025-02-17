@@ -11,6 +11,7 @@ class GranularitySerializer(serializers.Field):
 		return {
 			"H5": 5*60,
 			"H1": 1*60,
+			"M30": 30,
 			"M5": 5,
 			"M1": 1,
 		}[data]
