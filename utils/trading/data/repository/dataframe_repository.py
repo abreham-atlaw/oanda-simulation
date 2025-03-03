@@ -104,6 +104,9 @@ class DataFrameRepository(CurrencyRepository):
 		)
 		instrument_df = instrument_df.iloc[-count * granularity::granularity]
 
+		if instrument_df.shape[0] < count:
+			raise ValueError("Not enough data")
+
 		return [
 			Candlestick(row['v'], row['o'], row['c'], row['h'], row['l'], row['time'])
 			for _, row in instrument_df.iterrows()
