@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 
 from pytz import timezone
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -151,10 +152,21 @@ SPREAD_COST_PERCENTAGE = 0.00011941434659618314
 ACCOUNT_ID_KEY = "account_id"
 
 CREATE_LOCAL_ACCOUNT = True
-LOCAL_DEFAULT_ACCOUNT_TIME_DELTA = random.randint(*[
-    (datetime.now().replace(tzinfo=timezone("UTC")) - datetime.strptime(t, '%Y-%m-%d %H:%M:%S%z')).total_seconds()//60
-    for t in ['2023-09-22 08:30:00+00:00', '2011-03-14 22:41:00+00:00']
-])
+LOCAL_DEFAULT_ACCOUNT_START_TIME = os.environ.get(
+    'OANDA_LOCAL_DEFAULT_ACCOUNT_START_TIME',
+    None
+)
+if LOCAL_DEFAULT_ACCOUNT_START_TIME is not None:
+    LOCAL_DEFAULT_ACCOUNT_TIME_DELTA = int(
+        (
+                datetime.now().replace(tzinfo=timezone("UTC")) - datetime.strptime(LOCAL_DEFAULT_ACCOUNT_START_TIME, '%Y-%m-%d %H:%M:%S%z')
+        ).total_seconds()//60
+    )
+else:
+    LOCAL_DEFAULT_ACCOUNT_TIME_DELTA = random.randint(*[
+        (datetime.now().replace(tzinfo=timezone("UTC")) - datetime.strptime(t, '%Y-%m-%d %H:%M:%S%z')).total_seconds()//60
+        for t in ['2024-05-19 18:16:00+00:00', '2023-10-15 00:01:00+00:00']
+    ])
 LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER = 4.94
 LOCAL_DEFAULT_ACCOUNT_BALANCE = 100.0
 LOCAL_DEFAULT_ACCOUNT_FILE_PATH = RES_PATH / "local_account.json"
