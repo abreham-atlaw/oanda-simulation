@@ -10,11 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from pytz import timezone
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -168,8 +167,7 @@ else:
         for t in ['2024-05-19 18:16:00+00:00', '2023-10-15 00:01:00+00:00']
     ])
 print('Using local account with time delta', LOCAL_DEFAULT_ACCOUNT_TIME_DELTA)
-print('Using start time', datetime.now() - timedelta(minutes=LOCAL_DEFAULT_ACCOUNT_TIME_DELTA))
-LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER = 4.94
+LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER = 10.0
 LOCAL_DEFAULT_ACCOUNT_BALANCE = 100.0
 LOCAL_DEFAULT_ACCOUNT_FILE_PATH = RES_PATH / "local_account.json"
 
