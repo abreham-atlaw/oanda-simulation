@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+import json
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -152,8 +153,19 @@ SPREAD_COST_PERCENTAGE = 0.00011941434659618314
 ACCOUNT_ID_KEY = "account_id"
 
 CREATE_LOCAL_ACCOUNT = True
+MANUAL_TIME_SELECTION = True
+
+START_TIME_ENV_KEY = 'OANDA_LOCAL_DEFAULT_ACCOUNT_START_TIME'
+
+TIMES_LIST_FILE = RES_PATH / "times/times-5.json"
+
+if MANUAL_TIME_SELECTION:
+    print('Using manual time selection')
+    with open(TIMES_LIST_FILE, 'r') as f:
+        os.environ[START_TIME_ENV_KEY] = random.choice(json.load(f))
+
 LOCAL_DEFAULT_ACCOUNT_START_TIME = os.environ.get(
-    'OANDA_LOCAL_DEFAULT_ACCOUNT_START_TIME',
+    START_TIME_ENV_KEY,
     None
 )
 if LOCAL_DEFAULT_ACCOUNT_START_TIME is not None:
