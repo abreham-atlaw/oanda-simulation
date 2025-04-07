@@ -4,7 +4,8 @@ import os
 from django.apps import AppConfig
 
 from Oanda.settings import LOCAL_DEFAULT_ACCOUNT_TIME_DELTA, LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER, \
-    LOCAL_DEFAULT_ACCOUNT_BALANCE, CREATE_LOCAL_ACCOUNT, LOCAL_DEFAULT_ACCOUNT_FILE_PATH
+    LOCAL_DEFAULT_ACCOUNT_BALANCE, CREATE_LOCAL_ACCOUNT, LOCAL_DEFAULT_ACCOUNT_FILE_PATH, START_TIME_FILE_PATH, \
+    LOCAL_DEFAULT_ACCOUNT_START_TIME
 
 
 class AuthenticationConfig(AppConfig):
@@ -26,6 +27,9 @@ class AuthenticationConfig(AppConfig):
         print(f"Created Account {account.id}({account.alias})")
         with open(LOCAL_DEFAULT_ACCOUNT_FILE_PATH, "w") as f:
             json.dump(str(account.id), f)
+
+        with open(START_TIME_FILE_PATH, "w") as f:
+            json.dump(str(LOCAL_DEFAULT_ACCOUNT_START_TIME), f)
 
     def ready(self):
         if CREATE_LOCAL_ACCOUNT:
