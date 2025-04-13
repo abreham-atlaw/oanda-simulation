@@ -22,7 +22,7 @@ class Trade(models.Model):
 	margin_required: float = models.FloatField()
 	base_currency: str = models.CharField(max_length=3)
 	quote_currency: str = models.CharField(max_length=3)
-	open_time: datetime = models.DateTimeField(auto_now_add=True)
+	open_time: datetime = models.DateTimeField()
 	close_time: typing.Optional[datetime] = models.DateTimeField(null=True)
 	close_price: typing.Optional[float] = models.FloatField(null=True)
 

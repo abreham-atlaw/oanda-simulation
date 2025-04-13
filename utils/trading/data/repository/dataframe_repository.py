@@ -111,3 +111,6 @@ class DataFrameRepository(CurrencyRepository):
 			Candlestick(row['v'], row['o'], row['c'], row['h'], row['l'], row['time'])
 			for _, row in instrument_df.iterrows()
 		]
+
+	def get_datetime(self) -> datetime:
+		return self.__translate_time(super().get_datetime())

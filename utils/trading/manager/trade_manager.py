@@ -85,17 +85,15 @@ class TradeManager:
 			margin_required=margin_required,
 			base_currency=instrument[0],
 			quote_currency=instrument[1],
+			open_time=self.__repository.get_datetime()
 		)
 
 	def close_trade(self, trade: Trade):
 		pl, price = self.get_unrealized_pl(trade, include_price=True)
 		trade.realized_pl = pl
-		trade.close_time = datetime.now()
+		trade.close_time = self.__repository.get_datetime()
 		trade.close_price = price
 		trade.save()
 
 		trade.account.balance += pl
 		trade.account.save()
-
-
-

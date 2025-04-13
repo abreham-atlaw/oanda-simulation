@@ -42,3 +42,6 @@ class CurrencyRepository(ABC):
 		if instrument[0] == instrument[1]:
 			return units
 		return self.get_price(instrument) * units
+
+	def get_datetime(self) -> datetime:
+		return datetime.now()
