@@ -182,7 +182,7 @@ else:
     ])
 print('Using local account with time delta', LOCAL_DEFAULT_ACCOUNT_TIME_DELTA)
 print('Using start time', datetime.now() - timedelta(minutes=LOCAL_DEFAULT_ACCOUNT_TIME_DELTA))
-LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER = 10.0
+LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER = 5.0
 LOCAL_DEFAULT_ACCOUNT_BALANCE = 100.0
 LOCAL_DEFAULT_ACCOUNT_FILE_PATH = RES_PATH / "local_account.json"
 
