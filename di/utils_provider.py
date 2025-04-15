@@ -37,7 +37,7 @@ class UtilsProvider:
 	def provide_repository(account: Account) -> CurrencyRepository:
 
 		def __get_key(account: Account) -> str:
-			return f"{account.time_delta},{account.detla_multiplier}"
+			return f"{account.time_delta},{account.delta_multiplier}"
 
 		repository = UtilsProvider.__repositories.get(__get_key(account))
 
@@ -46,7 +46,7 @@ class UtilsProvider:
 				df=UtilsProvider.provide_df(),
 				time_delta=account.time_delta,
 				spread_cost_percentage=SPREAD_COST_PERCENTAGE,
-				delta_multiplier=account.detla_multiplier
+				delta_multiplier=account.delta_multiplier
 			)
 			UtilsProvider.__repositories[__get_key(account)] = repository
 
@@ -61,6 +61,6 @@ class UtilsProvider:
 			manager = TradeManager(
 				repository=UtilsProvider.provide_repository(account)
 			)
-			UtilsProvider.__managers[f"{account.time_delta},{account.detla_multiplier}"] = manager
+			UtilsProvider.__managers[f"{account.time_delta},{account.delta_multiplier}"] = manager
 
 		return manager

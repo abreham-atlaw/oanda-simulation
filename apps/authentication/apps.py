@@ -22,7 +22,7 @@ class AuthenticationConfig(AppConfig):
             margin_rate=0.1,
             balance=LOCAL_DEFAULT_ACCOUNT_BALANCE,
             time_delta=LOCAL_DEFAULT_ACCOUNT_TIME_DELTA,
-            detla_multiplier=LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER
+            delta_multiplier=LOCAL_DEFAULT_ACCOUNT_DELTA_MULTIPLIER
         )
         print(f"Created Account {account.id}({account.alias})")
         with open(LOCAL_DEFAULT_ACCOUNT_FILE_PATH, "w") as f:

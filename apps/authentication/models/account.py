@@ -12,7 +12,7 @@ class Account(models.Model):
 	currency: str = models.CharField(default="USD", max_length=255)
 	margin_rate: float = models.FloatField()
 	time_delta: int = models.IntegerField(default=0)
-	detla_multiplier = models.FloatField(default=1)
+	delta_multiplier = models.FloatField(default=1)
 
 	def __str__(self):
 		return self.alias
