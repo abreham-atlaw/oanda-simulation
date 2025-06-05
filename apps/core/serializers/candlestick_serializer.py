@@ -14,6 +14,7 @@ class GranularitySerializer(serializers.Field):
 			"M30": 30,
 			"M5": 5,
 			"M1": 1,
+			"S5": 1
 		}[data]
 
 
