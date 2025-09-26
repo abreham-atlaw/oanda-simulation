@@ -63,7 +63,7 @@ class DataFrameRepository(CurrencyRepository):
 			]
 		if instrument_df.shape[0] == 0:
 			instrument = instrument[1], instrument[0]
-			instrument_df = self.__get_instrument_df(instrument)
+			instrument_df = self.__get_instrument_df(instrument).copy()
 			for col in ["o", "h", "l", "c"]:
 				instrument_df[col] = 1 / instrument_df[col]
 			instrument_df["base_currency"], instrument_df["quote_currency"] = instrument[::-1]
