@@ -148,7 +148,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 RES_PATH = BASE_DIR / "res/"
 
 CURRENCY_DF_URL = "https://docs.google.com/uc?export=download&id=18BFdUu1fJCI6VmMnq_XLYwDvhdSBAEWw"
-CURRENCY_DF_PATH = RES_PATH / "data/USD-ZAR-0-Test.csv"
+CURRENCY_DF_PATH = RES_PATH / "data/All-All.csv"
 SPREAD_COST_PERCENTAGE = 0.00011941434659618314
 ACCOUNT_ID_KEY = "account_id"
 
