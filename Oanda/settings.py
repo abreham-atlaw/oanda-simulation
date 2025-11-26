@@ -144,6 +144,35 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+DEFAULT_LOGGING_ID = "Oanda"
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+
+    "formatters": {
+        f"{DEFAULT_LOGGING_ID}_formatter": {
+            "format": "[{levelname}] {asctime} {name}: {message}",
+            "style": "{",
+        }
+    },
+
+    "handlers": {
+		DEFAULT_LOGGING_ID: {
+			"class": "logging.StreamHandler",
+			"formatter": f"{DEFAULT_LOGGING_ID}_formatter",
+		}
+	},
+
+    "loggers": {
+		DEFAULT_LOGGING_ID: {
+            "handlers": [DEFAULT_LOGGING_ID],
+            "level": "INFO",
+            "propagate": False,
+        }
+    }
+}
+
+
 
 RES_PATH = BASE_DIR / "res/"
 

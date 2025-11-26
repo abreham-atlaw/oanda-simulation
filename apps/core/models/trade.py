@@ -26,6 +26,9 @@ class Trade(models.Model):
 	close_time: typing.Optional[datetime] = models.DateTimeField(null=True)
 	close_price: typing.Optional[float] = models.FloatField(null=True)
 
+	stop_loss: typing.Optional[float] = models.FloatField(null=True)
+	take_profit: typing.Optional[float] = models.FloatField(null=True)
+
 	@property
 	def state(self) -> str:
 		if self.close_time is None:
