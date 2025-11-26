@@ -18,6 +18,7 @@ from rest_framework import serializers
 
 from apps.core.models import Trade
 from apps.core.serializers import InstrumentSerializer
+from .price_serializer import PriceSerializer
 from di.utils_provider import UtilsProvider
 
 
@@ -27,7 +28,8 @@ class TradeSerializer(serializers.ModelSerializer):
 		model = Trade
 		fields = [
 			"id", "instrument", "initialUnits", "initialMarginRequired",
-			"realizedPL", "unrealizedPL", "marginUsed", "state", "price"
+			"realizedPL", "unrealizedPL", "marginUsed", "state", "price",
+			"stopLossOnFill"
 		]
 
 	initialUnits = serializers.FloatField(source="units")
@@ -36,6 +38,7 @@ class TradeSerializer(serializers.ModelSerializer):
 	unrealizedPL = serializers.SerializerMethodField()
 	marginUsed = serializers.SerializerMethodField()
 	instrument = InstrumentSerializer()
+	stopLossOnFill = PriceSerializer(source="stop_loss")
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

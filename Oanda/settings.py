@@ -220,3 +220,5 @@ PRICE_CACHING_TIMEOUT = 30
 MIN_GRANULARITY = 1
 
 STATS_DUMP_PATH = RES_PATH / "stats" / f"{datetime.now().timestamp()}.json"
+
+BACKGROUND_MANAGER_SLEEP_TIME = 1.0
