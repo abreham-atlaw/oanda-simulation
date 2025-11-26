@@ -26,11 +26,8 @@ class BackgroundTradeManager:
 		self.__running = False
 
 	def __monitor_stop_loss(self):
-		logger.info(f"Monitoring Stop Loss...")
 		for trade in Trade.objects.filter(close_time=None, stop_loss__isnull=False):
-			logger.info(f"Monitoring Stop Loss for Trade {trade.id}. Stop Loss: {trade.stop_loss}, Price: {self.__repository.get_price(trade.instrument)}")
 			if np.sign(trade.units) * self.__repository.get_price(trade.instrument) <= np.sign(trade.units) * trade.stop_loss:
-				logger.info(f"Stop Loss Triggered for Trade {trade.id}")
 				self.__manager.close_trade(trade)
 
 	def _step(self):
