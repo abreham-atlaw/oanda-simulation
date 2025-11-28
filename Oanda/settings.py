@@ -222,3 +222,9 @@ MIN_GRANULARITY = 1
 STATS_DUMP_PATH = RES_PATH / "stats" / f"{datetime.now().timestamp()}.json"
 
 BACKGROUND_MANAGER_SLEEP_TIME = 1.0
+
+INSTRUMENT_DISPLAY_PRECISION = {
+	("AUD", "USD"): 5,
+	("USD", 'ZAR'): 5
+}
+
