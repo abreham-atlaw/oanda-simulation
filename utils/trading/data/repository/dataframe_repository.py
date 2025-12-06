@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta
-
-import pandas as pd
 from typing import List
 
+import pandas as pd
+import numpy as np
+
 from pytz import timezone
+from datetime import datetime, timedelta
 
 from utils.cache.decorators import CacheDecorators
 from utils.devtools import stats
@@ -63,7 +64,7 @@ class DataFrameRepository(CurrencyRepository):
 			]
 		if instrument_df.shape[0] == 0:
 			instrument = instrument[1], instrument[0]
-			instrument_df = self.__get_instrument_df(instrument).copy()
+			instrument_df: pd.DataFrame = self.__get_instrument_df(instrument).copy()
 			for col in ["o", "h", "l", "c"]:
 				instrument_df[col] = 1 / instrument_df[col]
 			instrument_df["base_currency"], instrument_df["quote_currency"] = instrument[::-1]
@@ -96,13 +97,24 @@ class DataFrameRepository(CurrencyRepository):
 			price = self.get_price(instrument)
 		return price * self.__spread_cost
 
+	@staticmethod
+	def __condense_granularity(df: pd.DataFrame, g: int) -> pd.DataFrame:
+
+		df = df.iloc[:g * (df.shape[0] // g)]
+		df_g = df.iloc[0::g].copy()
+
+		for col, condenser in zip(["l", "h"], [np.min, np.max]):
+			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
+
+		return df_g
+
 	@stats.track_func(key="DataFrameRepository.get_candlestick")
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> List[Candlestick]:
 		instrument_df = self.__filter_df(
 			instrument=instrument,
 			time=self.__round_time(self.__translate_time(to), gran=granularity)
 		)
-		instrument_df = instrument_df.iloc[-count * granularity::granularity]
+		instrument_df = self.__condense_granularity(instrument_df, g=granularity).iloc[-count:]
 
 		if instrument_df.shape[0] < count:
 			raise ValueError("Not enough data")
