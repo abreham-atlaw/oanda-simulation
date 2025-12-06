@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
+from Oanda import settings
+
 
 class InstrumentSerializer(serializers.Serializer):
 
@@ -21,5 +23,6 @@ class FullInstrumentSerializer(InstrumentSerializer):
 
 	def to_representation(self, instance):
 		return {
-			"name": super().to_representation(instance)
+			"name": super().to_representation(instance),
+			"displayPrecision": settings.INSTRUMENT_DISPLAY_PRECISION[instance]
 		}

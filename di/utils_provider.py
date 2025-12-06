@@ -3,12 +3,14 @@ from datetime import datetime
 
 import pandas as pd
 
+from Oanda import settings
 from Oanda.settings import CURRENCY_DF_PATH, SPREAD_COST_PERCENTAGE, CURRENCY_DF_URL
 
 from apps.authentication.models import Account
+from di.misc_provider import logger
 from utils.trading.data.repository import CurrencyRepository
 from utils.trading.data.repository.dataframe_repository import DataFrameRepository
-from utils.trading.manager import TradeManager
+from utils.trading.manager import TradeManager, BackgroundTradeManager
 
 
 class UtilsProvider:
@@ -34,12 +36,13 @@ class UtilsProvider:
 
 
 	@staticmethod
+	def __get_key(account: Account) -> str:
+		return f"{account.time_delta},{account.delta_multiplier}"
+
+	@staticmethod
 	def provide_repository(account: Account) -> CurrencyRepository:
 
-		def __get_key(account: Account) -> str:
-			return f"{account.time_delta},{account.delta_multiplier}"
-
-		repository = UtilsProvider.__repositories.get(__get_key(account))
+		repository = UtilsProvider.__repositories.get(UtilsProvider.__get_key(account))
 
 		if repository is None:
 			repository = DataFrameRepository(
@@ -48,19 +51,28 @@ class UtilsProvider:
 				spread_cost_percentage=SPREAD_COST_PERCENTAGE,
 				delta_multiplier=account.delta_multiplier
 			)
-			UtilsProvider.__repositories[__get_key(account)] = repository
+			UtilsProvider.__repositories[UtilsProvider.__get_key(account)] = repository
 
 		return repository
 
 	@staticmethod
 	def provide_manager(account: Account) -> TradeManager:
-		time_delta = account.time_delta
-		manager = UtilsProvider.__managers.get(time_delta)
+		key = UtilsProvider.__get_key(account)
+		manager = UtilsProvider.__managers.get(key)
 
 		if manager is None:
 			manager = TradeManager(
 				repository=UtilsProvider.provide_repository(account)
 			)
-			UtilsProvider.__managers[f"{account.time_delta},{account.delta_multiplier}"] = manager
+			UtilsProvider.__managers[key] = manager
+			bg_manager = UtilsProvider.provide_background_manager(manager)
+			bg_manager.start()
 
 		return manager
+
+	@staticmethod
+	def provide_background_manager(manager: TradeManager) -> BackgroundTradeManager:
+		return BackgroundTradeManager(
+			manager=manager,
+			sleep_time=settings.BACKGROUND_MANAGER_SLEEP_TIME
+		)

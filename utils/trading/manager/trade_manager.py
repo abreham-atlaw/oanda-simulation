@@ -14,6 +14,9 @@ class TradeManager:
 	def __init__(self, repository: CurrencyRepository):
 		self.__repository = repository
 
+	def get_repository(self) -> CurrencyRepository:
+		return self.__repository
+
 	def __get_margin_required(self, account: Account, units, instrument, price=None):
 		if price is None:
 			price = self.__repository.get_price(instrument)
@@ -64,7 +67,14 @@ class TradeManager:
 	def get_open_trades(self, account: Account) -> typing.List[Trade]:
 		return Trade.objects.filter(account=account, close_time=None)
 
-	def open_trade(self, account: Account, instrument: Instrument, units: int) -> Trade:
+	def open_trade(
+			self,
+			account: Account,
+			instrument: Instrument,
+			units: int,
+			stop_loss: float | None = None,
+			take_profit: float | None = None
+	) -> Trade:
 
 		if units < 0:
 			price = self.__repository.get_bid_price(instrument)
@@ -85,13 +95,20 @@ class TradeManager:
 			margin_required=margin_required,
 			base_currency=instrument[0],
 			quote_currency=instrument[1],
-			open_time=self.__repository.get_datetime()
+			open_time=self.__repository.get_datetime(),
+			stop_loss=stop_loss,
+			take_profit=take_profit
 		)
 
-	def close_trade(self, trade: Trade):
+	def close_trade(self, trade: Trade, close_time: datetime = None):
+
+		if close_time is None:
+			close_time = self.__repository.get_datetime()
+
 		pl, price = self.get_unrealized_pl(trade, include_price=True)
 		trade.realized_pl = pl
-		trade.close_time = self.__repository.get_datetime()
+
+		trade.close_time = close_time
 		trade.close_price = price
 		trade.save()
 
