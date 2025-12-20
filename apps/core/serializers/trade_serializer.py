@@ -29,7 +29,7 @@ class TradeSerializer(serializers.ModelSerializer):
 		fields = [
 			"id", "instrument", "initialUnits", "initialMarginRequired",
 			"realizedPL", "unrealizedPL", "marginUsed", "state", "price",
-			"stopLossOrder"
+			"stopLossOrder", "takeProfitOrder"
 		]
 
 	initialUnits = serializers.FloatField(source="units")
@@ -39,6 +39,7 @@ class TradeSerializer(serializers.ModelSerializer):
 	marginUsed = serializers.SerializerMethodField()
 	instrument = InstrumentSerializer()
 	stopLossOrder = PriceSerializer(source="stop_loss")
+	takeProfitOrder = PriceSerializer(source="take_profit")
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

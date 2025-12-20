@@ -53,7 +53,7 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 	def tearDown(self):
 		self.bg_manager.stop()
 
-	def test_background_trade_manager(self):
+	def test_background_trade_manager_stop_loss(self):
 		instrument = ("AUD", "USD")
 
 		INCREMENT = 10
@@ -71,6 +71,35 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 		self.assertIsNotNone(trade.stop_loss)
 
 		time.sleep(INCREMENT//2)
+		logger.info(f"Slept {INCREMENT // 2}. Price: {self.repository.get_price(instrument)}")
+		trade = Trade.objects.get(id=trade.id)
+		self.assertEqual(trade.close_time, None)
+
+		time.sleep(INCREMENT)
+		logger.info(f"Slept {INCREMENT}. Price: {self.repository.get_price(instrument)}")
+		trade = Trade.objects.get(id=trade.id)
+		self.assertIsNotNone(trade.close_time)
+
+		print(f"Trade Closed at: {trade.close_time}@{trade.close_price}")
+
+	def test_background_trade_manager_take_profit(self):
+		instrument = ("AUD", "USD")
+
+		INCREMENT = 10
+
+		price = self.repository.get_price(instrument)
+		take_profit = price + INCREMENT
+		logger.info(f"Entering Trade @ {price} with Take Profit @ {take_profit}")
+		trade = self.manager.open_trade(
+			account=self.account,
+			instrument=("AUD", "USD"),
+			units=100,
+			take_profit=take_profit
+		)
+
+		self.assertIsNotNone(trade.take_profit)
+
+		time.sleep(INCREMENT // 2)
 		logger.info(f"Slept {INCREMENT // 2}. Price: {self.repository.get_price(instrument)}")
 		trade = Trade.objects.get(id=trade.id)
 		self.assertEqual(trade.close_time, None)
