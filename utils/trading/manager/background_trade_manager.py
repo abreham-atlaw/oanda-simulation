@@ -30,8 +30,14 @@ class BackgroundTradeManager:
 			if np.sign(trade.units) * self.__repository.get_price(trade.instrument) <= np.sign(trade.units) * trade.stop_loss:
 				self.__manager.close_trade(trade)
 
+	def __monitor_take_profit(self):
+		for trade in Trade.objects.filter(close_time=None, take_profit__isnull=False):
+			if np.sign(trade.units) * self.__repository.get_price(trade.instrument) >= np.sign(trade.units) * trade.take_profit:
+				self.__manager.close_trade(trade)
+
 	def _step(self):
 		self.__monitor_stop_loss()
+		self.__monitor_take_profit()
 
 	def _loop(self):
 		while self.__running:
