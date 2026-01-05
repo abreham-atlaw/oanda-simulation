@@ -100,11 +100,15 @@ class DataFrameRepository(CurrencyRepository):
 	@staticmethod
 	def __condense_granularity(df: pd.DataFrame, g: int) -> pd.DataFrame:
 
+		df = df.iloc[::-1]
+
 		df = df.iloc[:g * (df.shape[0] // g)]
 		df_g = df.iloc[0::g].copy()
 
 		for col, condenser in zip(["l", "h"], [np.min, np.max]):
 			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
+
+		df_g = df_g.iloc[::-1]
 
 		return df_g
 
