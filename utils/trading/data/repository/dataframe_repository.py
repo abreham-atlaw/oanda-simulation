@@ -47,7 +47,6 @@ class DataFrameRepository(CurrencyRepository):
 
 		if multiply:
 			date = self.__start_datetime + (date - self.__start_datetime) * self.__delta_multiplier
-		print(date)
 
 		return date
 
