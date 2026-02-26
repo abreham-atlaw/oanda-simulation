@@ -23,7 +23,7 @@ class DataFrameRepository(CurrencyRepository):
 			self,
 			df: pd.DataFrame,
 			time_delta: int,
-			spread_cost_percentage_map: typing.Dict[typing.Tuple[st, str], float],
+			spread_cost_percentage_map: typing.Dict[typing.Tuple[str, str], float],
 			delta_multiplier: float = 1,
 			min_granularity=1
 	):
