@@ -1,3 +1,4 @@
+import typing
 from typing import List
 
 import pandas as pd
@@ -18,13 +19,13 @@ class DataFrameRepository(CurrencyRepository):
 			self,
 			df: pd.DataFrame,
 			time_delta: int,
-			spread_cost_percentage: float,
+			spread_cost_percentage_map: typing.Dict[typing.Tuple[st, str], float],
 			delta_multiplier: float = 1,
 			min_granularity=1
 	):
 		self.df = self.__prepare_df(df)
 		self.__timedelta = timedelta(minutes=time_delta)
-		self.__spread_cost = spread_cost_percentage
+		self.__spread_cost_map = spread_cost_percentage_map
 		self.__delta_multiplier = delta_multiplier
 		self.__start_datetime = self.__translate_time(datetime.now(), multiply=False)
 		self.__min_granularity = min_granularity
@@ -94,7 +95,7 @@ class DataFrameRepository(CurrencyRepository):
 	def get_spread_cost(self, instrument: Instrument, price: float = None) -> float:
 		if price is None:
 			price = self.get_price(instrument)
-		return price * self.__spread_cost
+		return price * self.__spread_cost_map[instrument]
 
 	@staticmethod
 	def __condense_granularity(df: pd.DataFrame, g: int) -> pd.DataFrame:

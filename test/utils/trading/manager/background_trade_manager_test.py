@@ -28,7 +28,7 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 		return DataFrameRepository(
 			df=df,
 			time_delta=0,
-			spread_cost_percentage=settings.SPREAD_COST_PERCENTAGE,
+			spread_cost_percentage_map=settings.SPREAD_COST_PERCENTAGE_MAP,
 			delta_multiplier=60
 		)
 

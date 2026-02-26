@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 from Oanda import settings
-from Oanda.settings import CURRENCY_DF_PATH, SPREAD_COST_PERCENTAGE, CURRENCY_DF_URL
+from Oanda.settings import CURRENCY_DF_PATH, SPREAD_COST_PERCENTAGE_MAP, CURRENCY_DF_URL
 
 from apps.authentication.models import Account
 from di.misc_provider import logger
@@ -48,7 +48,7 @@ class UtilsProvider:
 			repository = DataFrameRepository(
 				df=UtilsProvider.provide_df(),
 				time_delta=account.time_delta,
-				spread_cost_percentage=SPREAD_COST_PERCENTAGE,
+				spread_cost_percentage_map=SPREAD_COST_PERCENTAGE_MAP,
 				delta_multiplier=account.delta_multiplier
 			)
 			UtilsProvider.__repositories[UtilsProvider.__get_key(account)] = repository
