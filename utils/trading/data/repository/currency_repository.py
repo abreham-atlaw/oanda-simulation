@@ -24,6 +24,14 @@ class CurrencyRepository(ABC):
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> typing.List[Candlestick]:
 		pass
 
+	def get_min_granularity(self) -> int:
+		return 1
+
+	def get_latest_candlestick(self, instrument: Instrument, granularity: int = None) -> Candlestick:
+		if granularity is None:
+			granularity = self.get_min_granularity()
+		return self.get_candlestick(instrument, granularity, 1, datetime.now())[0]
+
 	def get_ask_price(self, instrument: Instrument, price: typing.Optional[float] = None) -> float:
 		if price is None:
 			price = self.get_price(instrument)
