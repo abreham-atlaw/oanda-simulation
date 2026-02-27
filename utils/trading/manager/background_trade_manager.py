@@ -1,4 +1,6 @@
 import logging
+import typing
+from datetime import datetime
 
 import numpy as np
 
@@ -8,7 +10,7 @@ from threading import Thread
 from apps.core.models import Trade
 from di import MiscProvider
 from .trade_manager import TradeManager
-
+from ..data.models import Candlestick
 
 logger = MiscProvider.provide_logger()
 
@@ -25,14 +27,19 @@ class BackgroundTradeManager:
 		self.__thread = None
 		self.__running = False
 
+
 	def __monitor_stop_loss(self):
 		for trade in Trade.objects.filter(close_time=None, stop_loss__isnull=False):
-			if np.sign(trade.units) * self.__repository.get_price(trade.instrument) <= np.sign(trade.units) * trade.stop_loss:
+			cs: Candlestick = self.__repository.get_latest_candlestick(trade.instrument)
+			price = cs.low if trade.units > 0 else cs.high
+			if np.sign(trade.units) * price <= np.sign(trade.units) * trade.stop_loss:
 				self.__manager.close_trade(trade)
 
 	def __monitor_take_profit(self):
 		for trade in Trade.objects.filter(close_time=None, take_profit__isnull=False):
-			if np.sign(trade.units) * self.__repository.get_price(trade.instrument) >= np.sign(trade.units) * trade.take_profit:
+			cs: Candlestick = self.__repository.get_latest_candlestick(trade.instrument)
+			price = cs.high if trade.units > 0 else cs.low
+			if np.sign(trade.units) * price >= np.sign(trade.units) * trade.take_profit:
 				self.__manager.close_trade(trade)
 
 	def _step(self):

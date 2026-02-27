@@ -21,7 +21,7 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 		SIZE = 1000
 		df = pd.DataFrame(columns=["v","o","h","l","c","time","base_currency","quote_currency"])
 		for col in ["v", "o", "h", "l", "c"]:
-			df[col] = np.arange(SIZE) + 1
+			df[col] = np.arange(SIZE) + 1 + (2 if col == "h" else -2 if col == "l" else 0)
 		# TIME FORMAT: 2023-09-22 08:31:00+00:00
 		df["time"] = [(datetime.now() + timedelta(minutes=i - SIZE//2)).replace(tzinfo=timezone.utc).strftime("%Y-%m-%d %H:%M:%S+00:00") for i in range(SIZE)]
 		df["base_currency"], df["quote_currency"] = "AUD", "USD"
