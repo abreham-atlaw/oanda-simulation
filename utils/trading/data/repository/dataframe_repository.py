@@ -8,6 +8,7 @@ import numpy as np
 from pytz import timezone
 from datetime import datetime, timedelta
 
+from di.misc_provider import logger
 from utils.cache.decorators import CacheDecorators
 from utils.devtools import stats
 from utils.trading.data.models import Instrument, Candlestick
@@ -52,6 +53,8 @@ class DataFrameRepository(CurrencyRepository):
 		df["time"] = pd.to_datetime(df["time"])
 		df = df.drop_duplicates(subset="time")
 		df = df.sort_values(by="time")
+		df = df.set_index("time")
+		df["time"] = df.index
 		return df
 
 	@property
@@ -94,7 +97,7 @@ class DataFrameRepository(CurrencyRepository):
 		if instrument is not None:
 			df = self.__get_instrument_df(instrument)
 		if time is not None:
-			df = df[df["time"] <= time]
+			df = df[df["time"] < time]
 		return df
 
 	@stats.track_func(key="DataFrameRepository.get_instruments")
@@ -117,17 +120,26 @@ class DataFrameRepository(CurrencyRepository):
 	@staticmethod
 	def __condense_granularity(df: pd.DataFrame, g: int) -> pd.DataFrame:
 
-		df = df.iloc[::-1]
+		if not isinstance(df.index, pd.DatetimeIndex):
+			logger.warning(
+				f"Dataframe index({df.index}) is not of type pd.DatatimeIndex. DataPrepUtils.clean_df should be called before condense_granularity"
+			)
 
-		df = df.iloc[:g * (df.shape[0] // g)]
-		df_g = df.iloc[0::g].copy()
+		agg_map = {
+			"c": "last",
+			"l": "min",
+			"h": 'max',
+			"o": "first",
+			"v": "sum"
+		}
 
-		for col, condenser in zip(["l", "h"], [np.min, np.max]):
-			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
+		for col in df.columns:
+			if col not in agg_map:
+				agg_map[col] = "first"
 
-		df_g = df_g.iloc[::-1]
-
-		return df_g
+		gran_df = df.resample(f"{g}min").agg(agg_map)
+		gran_df["time"] = gran_df.index
+		return gran_df
 
 	@stats.track_func(key="DataFrameRepository.get_candlestick")
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> List[Candlestick]:
@@ -135,7 +147,7 @@ class DataFrameRepository(CurrencyRepository):
 			instrument=instrument,
 			time=self.__round_time(self.__translate_time(to), gran=granularity)
 		)
-		instrument_df = self.__condense_granularity(instrument_df, g=granularity).iloc[-count:]
+		instrument_df: pd.DataFrame = self.__condense_granularity(instrument_df, g=granularity).tail(count)
 
 		if instrument_df.shape[0] < count:
 			raise ValueError("Not enough data")
