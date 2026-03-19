@@ -2,11 +2,14 @@ import typing
 
 from datetime import datetime
 
+import numpy as np
+
 from apps.authentication.models import Account
 from apps.core.models import Trade
 from utils.devtools import stats
 from utils.trading.data.models import Instrument
 from utils.trading.data.repository import CurrencyRepository
+from .exceptions import InvalidTriggerValueException
 
 
 class TradeManager:
@@ -67,6 +70,18 @@ class TradeManager:
 	def get_open_trades(self, account: Account) -> typing.List[Trade]:
 		return Trade.objects.filter(account=account, close_time=None)
 
+	@staticmethod
+	def __validate_triggers(units: int, price: float, take_profit: float = None, stop_loss: float = None) -> bool:
+
+		def validate_value(action: int, price: float, trigger: float, trigger_direction: int) -> bool:
+			if trigger is None:
+				return True
+			return action * trigger_direction * (trigger - price) > 0
+
+		action = np.sign(units)
+
+		return validate_value(action, price, take_profit, 1) and validate_value(action, price, stop_loss, -1)
+
 	def open_trade(
 			self,
 			account: Account,
@@ -87,6 +102,9 @@ class TradeManager:
 			instrument=instrument,
 			price=price
 		)
+
+		if not self.__validate_triggers(units, price, take_profit, stop_loss):
+			raise InvalidTriggerValueException(take_profit, stop_loss, price, units)
 
 		return Trade.objects.create(
 			account=account,
