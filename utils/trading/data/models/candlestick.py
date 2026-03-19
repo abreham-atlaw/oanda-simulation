@@ -11,3 +11,4 @@ class Candlestick:
 	high: float
 	low: float
 	time: datetime
+	granularity: int
