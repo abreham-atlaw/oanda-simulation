@@ -1,7 +1,7 @@
 import typing
 from abc import ABC, abstractmethod
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from utils.trading.data.models import Instrument, Candlestick
 
@@ -53,3 +53,8 @@ class CurrencyRepository(ABC):
 
 	def get_datetime(self) -> datetime:
 		return datetime.now()
+
+	def get_candlestick_timerange(self, candlestick: Candlestick) -> typing.Tuple[datetime, datetime]:
+		open_time = candlestick.time
+		close_time = candlestick.time + timedelta(minutes=candlestick.granularity)
+		return open_time, close_time

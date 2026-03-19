@@ -31,6 +31,12 @@ class BackgroundTradeManager:
 	def __monitor_stop_loss(self):
 		for trade in Trade.objects.filter(close_time=None, stop_loss__isnull=False):
 			cs: Candlestick = self.__repository.get_latest_candlestick(trade.instrument)
+
+			time_range = self.__repository.get_candlestick_timerange(cs)
+
+			if time_range[1] < trade.open_time:
+				continue
+
 			price = cs.low if trade.units > 0 else cs.high
 			if np.sign(trade.units) * price <= np.sign(trade.units) * trade.stop_loss:
 				self.__manager.close_trade(trade)
@@ -38,6 +44,12 @@ class BackgroundTradeManager:
 	def __monitor_take_profit(self):
 		for trade in Trade.objects.filter(close_time=None, take_profit__isnull=False):
 			cs: Candlestick = self.__repository.get_latest_candlestick(trade.instrument)
+
+			time_range = self.__repository.get_candlestick_timerange(cs)
+
+			if time_range[1] < trade.open_time:
+				continue
+
 			price = cs.high if trade.units > 0 else cs.low
 			if np.sign(trade.units) * price >= np.sign(trade.units) * trade.take_profit:
 				self.__manager.close_trade(trade)
