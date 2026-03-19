@@ -38,7 +38,7 @@ class CreateOrderView(APIView):
 		except InvalidTriggerValueException as ex:
 			logger.error(str(ex))
 			return Response(
-				status=status.HTTP_400_BAD_REQUEST,
+				status=status.HTTP_201_CREATED,
 				data={
 					"orderCancelTransaction": {
 						"orderID": "00",
