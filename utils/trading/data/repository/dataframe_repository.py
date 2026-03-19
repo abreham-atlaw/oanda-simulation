@@ -79,6 +79,7 @@ class DataFrameRepository(CurrencyRepository):
 		df = self.df
 		if instrument is not None:
 			df = self.__get_instrument_df(instrument)
+		time = self.__round_time(time, gran=self.__min_granularity)
 		if time is not None:
 			df = df[df["time"] < time]
 		return df
@@ -136,7 +137,7 @@ class DataFrameRepository(CurrencyRepository):
 			raise ValueError("Not enough data")
 
 		return [
-			Candlestick(row['v'], row['o'], row['c'], row['h'], row['l'], row['time'])
+			Candlestick(row['v'], row['o'], row['c'], row['h'], row['l'], row['time'], granularity)
 			for _, row in instrument_df.iterrows()
 		]
 
