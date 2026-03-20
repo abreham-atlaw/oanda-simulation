@@ -26,10 +26,11 @@ class TradeManager:
 		return account.margin_rate * self.__repository.convert(price * abs(units), (instrument[1], account.currency))
 
 	@stats.track_func(key="TradeManager.get_unrealized_pl")
-	def get_unrealized_pl(self, trade: Trade, include_price: bool = False) -> typing.Union[float, typing.Tuple[float, float]]:
+	def get_unrealized_pl(self, trade: Trade, include_price: bool = False, price: float = None) -> typing.Union[float, typing.Tuple[float, float]]:
 		if trade.state == Trade.State.closed:
 			return 0
-		price = self.__repository.get_price(trade.instrument)
+		if price is None:
+			price = self.__repository.get_price(trade.instrument)
 		quote_value = (price - trade.price) * trade.units
 
 		unrealized_pl = self.__repository.convert(quote_value, (trade.instrument[1], trade.account.currency))
@@ -118,12 +119,12 @@ class TradeManager:
 			take_profit=take_profit
 		)
 
-	def close_trade(self, trade: Trade, close_time: datetime = None):
+	def close_trade(self, trade: Trade, close_time: datetime = None, price: float = None):
 
 		if close_time is None:
 			close_time = self.__repository.get_datetime()
 
-		pl, price = self.get_unrealized_pl(trade, include_price=True)
+		pl, price = self.get_unrealized_pl(trade, include_price=True, price=price)
 		trade.realized_pl = pl
 
 		trade.close_time = close_time
