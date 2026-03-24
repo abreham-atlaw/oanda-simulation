@@ -123,6 +123,9 @@ class DataFrameRepository(CurrencyRepository):
 
 		gran_df = df.resample(f"{g}min").agg(agg_map)
 		gran_df["time"] = gran_df.index
+
+		gran_df = gran_df.dropna()
+
 		return gran_df
 
 	@stats.track_func(key="DataFrameRepository.get_candlestick")
