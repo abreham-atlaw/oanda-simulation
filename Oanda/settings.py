@@ -177,7 +177,7 @@ LOGGING = {
 RES_PATH = BASE_DIR / "res/"
 
 CURRENCY_DF_URL = "https://docs.google.com/uc?export=download&id=18BFdUu1fJCI6VmMnq_XLYwDvhdSBAEWw"
-CURRENCY_DF_PATH = RES_PATH / "data/AUD-USD.csv"
+CURRENCY_DF_PATH = RES_PATH / "data/mit-2-test.csv"
 SPREAD_COST_PERCENTAGE_MAP = {
 	('AUD', 'USD'): 0.00018,
 	('EUR', 'USD'): 0.00008,
@@ -233,4 +233,6 @@ INSTRUMENT_DISPLAY_PRECISION = {
 	("AUD", "USD"): 5,
 	("USD", 'ZAR'): 5
 }
+
+WEEKEND_CLOSE_MARKET = True
 

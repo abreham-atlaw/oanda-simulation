@@ -6,16 +6,28 @@ import numpy as np
 
 from apps.authentication.models import Account
 from apps.core.models import Trade
+from di.misc_provider import logger
 from utils.devtools import stats
 from utils.trading.data.models import Instrument
 from utils.trading.data.repository import CurrencyRepository
-from .exceptions import InvalidTriggerValueException
+from .exceptions import InvalidTriggerValueException, MarketClosedException
 
 
 class TradeManager:
 
-	def __init__(self, repository: CurrencyRepository):
+	__WEEKENDS = [5, 6]
+
+	def __init__(
+			self,
+			repository: CurrencyRepository,
+			weekend_close_market: bool = False
+	):
 		self.__repository = repository
+		self.__weekend_close_market = weekend_close_market
+		logger.info(
+			f"Initialized {self.__class__.__name__} with repository: {repository.__class__.__name__}, "
+			f"weekend_close_market: {weekend_close_market}"
+		)
 
 	def get_repository(self) -> CurrencyRepository:
 		return self.__repository
@@ -83,6 +95,22 @@ class TradeManager:
 
 		return validate_value(action, price, take_profit, 1) and validate_value(action, price, stop_loss, -1)
 
+	def __validate_trade(
+		self,
+		units: int,
+		price: float,
+		stop_loss: float | None = None,
+		take_profit: float | None = None
+	):
+
+		now = self.__repository.get_datetime()
+
+		if self.__weekend_close_market and now.weekday() in self.__WEEKENDS:
+			raise MarketClosedException(now)
+
+		if not self.__validate_triggers(units, price, take_profit, stop_loss):
+			raise InvalidTriggerValueException(take_profit, stop_loss, price, units)
+
 	def open_trade(
 			self,
 			account: Account,
@@ -104,8 +132,9 @@ class TradeManager:
 			price=price
 		)
 
-		if not self.__validate_triggers(units, price, take_profit, stop_loss):
-			raise InvalidTriggerValueException(take_profit, stop_loss, price, units)
+		self.__validate_trade(
+			units, price, stop_loss, take_profit
+		)
 
 		return Trade.objects.create(
 			account=account,
