@@ -62,7 +62,8 @@ class UtilsProvider:
 
 		if manager is None:
 			manager = TradeManager(
-				repository=UtilsProvider.provide_repository(account)
+				repository=UtilsProvider.provide_repository(account),
+				weekend_close_market=settings.WEEKEND_CLOSE_MARKET
 			)
 			UtilsProvider.__managers[key] = manager
 			bg_manager = UtilsProvider.provide_background_manager(manager)
