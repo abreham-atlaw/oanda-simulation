@@ -24,5 +24,6 @@ class FullInstrumentSerializer(InstrumentSerializer):
 	def to_representation(self, instance):
 		return {
 			"name": super().to_representation(instance),
-			"displayPrecision": settings.INSTRUMENT_DISPLAY_PRECISION[instance]
+			"displayPrecision": settings.INSTRUMENT_DISPLAY_PRECISION[instance],
+			"tradeUnitsPrecision": settings.INSTRUMENT_TRADE_UNITS_PRECISION[instance]
 		}
