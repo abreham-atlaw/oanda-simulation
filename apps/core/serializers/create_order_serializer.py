@@ -7,7 +7,7 @@ from .price_serializer import PriceSerializer
 
 class CreateOrderRequestSerializer(serializers.Serializer):
 
-	units = serializers.IntegerField()
+	units = serializers.FloatField()
 	instrument = InstrumentSerializer()
 	stopLossOnFill = PriceSerializer(source="stop_loss", allow_null=True, required=False)
 	takeProfitOnFill= PriceSerializer(source="take_profit", allow_null=True, required=False)
