@@ -18,7 +18,7 @@ class Trade(models.Model):
 	account: Account = models.ForeignKey(Account, on_delete=models.CASCADE)
 	price: float = models.FloatField()
 	realized_pl: typing.Optional[float] = models.FloatField(default=0.0)
-	units: float = models.IntegerField()
+	units: float = models.FloatField()
 	margin_required: float = models.FloatField()
 	base_currency: str = models.CharField(max_length=3)
 	quote_currency: str = models.CharField(max_length=3)
