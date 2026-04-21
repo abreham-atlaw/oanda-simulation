@@ -116,6 +116,12 @@ class TradeManager:
 		if not self.__validate_triggers(units, price, take_profit, stop_loss):
 			raise InvalidTriggerValueException(take_profit, stop_loss, price, units)
 
+	def __get_opposite_trade(self, account: Account, instrument: Instrument, units: int) -> typing.Optional[Trade]:
+		for trade in self.get_open_trades(account):
+			if trade.instrument == instrument and trade.units == -units:
+				return trade
+		return None
+
 	def open_trade(
 			self,
 			account: Account,
@@ -124,6 +130,10 @@ class TradeManager:
 			stop_loss: float | None = None,
 			take_profit: float | None = None
 	) -> Trade:
+		opposite_trade = self.__get_opposite_trade(account, instrument, units)
+		if opposite_trade is not None:
+			self.close_trade(opposite_trade)
+			return opposite_trade
 
 		if units < 0:
 			price = self.__repository.get_bid_price(instrument)
