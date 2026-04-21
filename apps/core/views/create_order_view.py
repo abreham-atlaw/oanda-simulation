@@ -23,23 +23,29 @@ class CreateOrderView(APIView):
 		serializer = CreateOrderRequestSerializer(data=request.data)
 		serializer.is_valid(raise_exception=True)
 
-		try:
-			trade = manager.open_trade(
+		if serializer.validated_data.pop("type") == CreateOrderRequestSerializer.OrderTypes.limit:
+			trade = manager.create_limit_order(
 				request.account,
 				**serializer.validated_data
 			)
+		else:
+			try:
+				trade = manager.open_trade(
+					request.account,
+					**serializer.validated_data
+				)
 
-		except TradeException as ex:
-			logger.error(str(ex))
-			return Response(
-				status=status.HTTP_201_CREATED,
-				data={
-					"orderCancelTransaction": {
-						"orderID": "00",
-						"reason": self.__ERROR_REASON_MAP.get(ex.__class__.__name__)
+			except TradeException as ex:
+				logger.error(str(ex))
+				return Response(
+					status=status.HTTP_201_CREATED,
+					data={
+						"orderCancelTransaction": {
+							"orderID": "00",
+							"reason": self.__ERROR_REASON_MAP.get(ex.__class__.__name__)
+						}
 					}
-				}
-			)
+				)
 
 		serializer = CreateOrderResponseSerializer(instance=trade)
 		return Response(

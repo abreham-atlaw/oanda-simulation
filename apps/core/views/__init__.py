@@ -4,3 +4,5 @@ from .close_trade_view import *
 from .get_pricing_view import *
 from .get_candlestick_view import *
 from .get_instruments_view import *
+from .get_pending_orders_view import GetPendingOrdersView
+from .cancel_order_view import CancelOrderView

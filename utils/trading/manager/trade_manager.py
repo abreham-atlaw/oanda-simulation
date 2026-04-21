@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from apps.authentication.models import Account
-from apps.core.models import Trade
+from apps.core.models import Trade, LimitOrder
 from di.misc_provider import logger
 from utils.devtools import stats
 from utils.trading.data.models import Instrument
@@ -177,3 +177,29 @@ class TradeManager:
 
 		trade.account.balance += pl
 		trade.account.save()
+
+	def create_limit_order(
+			self,
+			account: Account,
+			price: float,
+			instrument: Instrument,
+			units: int,
+			stop_loss: float | None = None,
+			take_profit: float | None = None
+	) -> LimitOrder:
+
+		return LimitOrder.objects.create(
+			account=account,
+			price=price,
+			units=units,
+			base_currency=instrument[0],
+			quote_currency=instrument[1],
+			open_time=self.__repository.get_datetime(),
+			stop_loss=stop_loss,
+			take_profit=take_profit
+		)
+
+	@staticmethod
+	def cancel_order(order: LimitOrder):
+		order.close_time = datetime.now()
+		order.save()
