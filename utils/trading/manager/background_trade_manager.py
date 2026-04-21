@@ -37,9 +37,15 @@ class BackgroundTradeManager:
 			if time_range[1] < trade.open_time:
 				continue
 
-			price = cs.low if trade.units > 0 else cs.high
-			if np.sign(trade.units) * price <= np.sign(trade.units) * trade.stop_loss:
-				self.__manager.close_trade(trade, price=price)
+			mid_price = cs.low if trade.units > 0 else cs.high
+			trigger_price = (
+				self.__repository.get_bid_price(instrument=trade.instrument, price=mid_price)
+				if trade.units > 0 else
+				self.__repository.get_ask_price(instrument=trade.instrument, price=mid_price)
+			)
+
+			if np.sign(trade.units) * trigger_price <= np.sign(trade.units) * trade.stop_loss:
+				self.__manager.close_trade(trade, price=mid_price)
 
 	def __monitor_take_profit(self):
 		for trade in Trade.objects.filter(close_time=None, take_profit__isnull=False):
@@ -50,9 +56,16 @@ class BackgroundTradeManager:
 			if time_range[1] < trade.open_time:
 				continue
 
-			price = cs.high if trade.units > 0 else cs.low
-			if np.sign(trade.units) * price >= np.sign(trade.units) * trade.take_profit:
-				self.__manager.close_trade(trade, price=price)
+
+			mid_price = cs.high if trade.units > 0 else cs.low
+			trigger_price = (
+				self.__repository.get_bid_price(instrument=trade.instrument, price=mid_price)
+				if trade.units > 0 else
+				self.__repository.get_ask_price(instrument=trade.instrument, price=mid_price)
+			)
+
+			if np.sign(trade.units) * trigger_price >= np.sign(trade.units) * trade.take_profit:
+				self.__manager.close_trade(trade, price=mid_price)
 
 	def _step(self):
 		self.__monitor_stop_loss()

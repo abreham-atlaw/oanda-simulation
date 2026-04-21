@@ -41,8 +41,13 @@ class TradeManager:
 	def get_unrealized_pl(self, trade: Trade, include_price: bool = False, price: float = None) -> typing.Union[float, typing.Tuple[float, float]]:
 		if trade.state == Trade.State.closed:
 			return 0
-		if price is None:
-			price = self.__repository.get_price(trade.instrument)
+
+		price = (
+			self.__repository.get_ask_price(trade.instrument, price=price)
+			if trade.units < 0 else
+			self.__repository.get_bid_price(trade.instrument, price=price)
+		)
+
 		quote_value = (price - trade.price) * trade.units
 
 		unrealized_pl = self.__repository.convert(quote_value, (trade.instrument[1], trade.account.currency))
