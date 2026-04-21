@@ -128,17 +128,18 @@ class TradeManager:
 			instrument: Instrument,
 			units: int,
 			stop_loss: float | None = None,
-			take_profit: float | None = None
+			take_profit: float | None = None,
+			price: float = None
 	) -> Trade:
 		opposite_trade = self.__get_opposite_trade(account, instrument, units)
 		if opposite_trade is not None:
-			self.close_trade(opposite_trade)
+			self.close_trade(opposite_trade, price=price)
 			return opposite_trade
 
 		if units < 0:
-			price = self.__repository.get_bid_price(instrument)
+			price = self.__repository.get_bid_price(instrument, price=price)
 		else:
-			price = self.__repository.get_ask_price(instrument)
+			price = self.__repository.get_ask_price(instrument, price=price)
 
 		margin_required = self.__get_margin_required(
 			account=account,
@@ -203,3 +204,15 @@ class TradeManager:
 	def cancel_order(order: LimitOrder):
 		order.close_time = datetime.now()
 		order.save()
+
+	def fill_limit_order(self, order: LimitOrder, price=None) -> Trade:
+		self.cancel_order(order)
+		trade = self.open_trade(
+			account=order.account,
+			instrument=order.instrument,
+			units=order.units,
+			stop_loss=order.stop_loss,
+			take_profit=order.take_profit,
+			price=price
+		)
+		return trade
