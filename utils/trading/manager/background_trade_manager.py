@@ -54,6 +54,9 @@ class BackgroundTradeManager:
 		for trade in Trade.objects.filter(close_time=None, take_profit__isnull=False):
 			cs = self.__get_latest_candlestick(trade)
 
+			if cs is None:
+				continue
+
 			mid_price = cs.high if trade.units > 0 else cs.low
 			trigger_price = (
 				self.__repository.get_bid_price(instrument=trade.instrument, price=mid_price)
