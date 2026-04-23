@@ -177,7 +177,7 @@ LOGGING = {
 RES_PATH = BASE_DIR / "res/"
 
 CURRENCY_DF_URL = "https://docs.google.com/uc?export=download&id=18BFdUu1fJCI6VmMnq_XLYwDvhdSBAEWw"
-CURRENCY_DF_PATH = RES_PATH / "data/mit-2-test.csv"
+CURRENCY_DF_PATH = RES_PATH / "data/All-All.csv"
 SPREAD_COST_PERCENTAGE_MAP = {
 	('AUD', 'USD'): 0.00018,
 	('EUR', 'USD'): 0.00008,
@@ -228,11 +228,11 @@ MIN_GRANULARITY = 1
 
 STATS_DUMP_PATH = RES_PATH / "stats" / f"{datetime.now().timestamp()}.json"
 
-BACKGROUND_MANAGER_SLEEP_TIME = 1.0
+BACKGROUND_MANAGER_SLEEP_TIME = 0.1
 
 INSTRUMENT_DISPLAY_PRECISION = {
 	("AUD", "USD"): 5,
-	("USD", 'ZAR'): 5,
+	("EUR", "USD"): 5,
 	("XAU", "USD"): 2,
 }
 

@@ -1,4 +1,5 @@
 import typing
+import logging
 from typing import List
 
 import pandas as pd
@@ -12,6 +13,9 @@ from utils.cache.decorators import CacheDecorators
 from utils.devtools import stats
 from utils.trading.data.models import Instrument, Candlestick
 from utils.trading.data.repository import CurrencyRepository
+
+
+logger = logging.getLogger(__name__)
 
 
 class DataFrameRepository(CurrencyRepository):
@@ -33,6 +37,19 @@ class DataFrameRepository(CurrencyRepository):
 
 	@staticmethod
 	def __prepare_df(df: pd.DataFrame) -> pd.DataFrame:
+		logger.info(f"Cleaning DataFrame")
+
+		instruments = list(df[["base_currency", "quote_currency"]].drop_duplicates().itertuples(index=False, name=None))
+		if len(instruments) > 1:
+			logger.info(f"Found {len(instruments)} instruments: {instruments}")
+			cleaned_dfs = []
+			for base_currency, quote_currency in instruments:
+				df_instrument = df[
+					(df["base_currency"] == base_currency) & (df["quote_currency"] == quote_currency)].copy()
+				cleaned_dfs.append(DataFrameRepository.__prepare_df(df_instrument))
+			return pd.concat(cleaned_dfs)
+
+		logger.info(f"Cleaning {instruments[0]}...")
 		df["time"] = pd.to_datetime(df["time"])
 		df = df.drop_duplicates(subset="time")
 		df = df.sort_values(by="time")
