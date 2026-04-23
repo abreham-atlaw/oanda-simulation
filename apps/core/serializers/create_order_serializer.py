@@ -39,7 +39,7 @@ class CreateOrderResponseSerializer(serializers.Serializer):
 			"orderCreateTransaction": {
 				"reason": "MARKET_ORDER" if is_trade else "CLIENT_ORDER",
 				"orderID": instance.id,
-				"requestedUnits": instance.units,
+				"units": instance.units,
 				"type": "MARKET_ORDER" if is_trade else "LIMIT_ORDER",
 
 				"stopLossOnFill": self.__price_serializer.to_representation(instance.stop_loss),
@@ -47,9 +47,14 @@ class CreateOrderResponseSerializer(serializers.Serializer):
 			}
 		}
 		if is_trade:
-			rep["tradeOpened"] = {
-				"tradeID": instance.id,
-				"units": instance.units,
-				"initialMarginRequired": instance.margin_required
+			rep["orderFillTransaction"] = {
+				"reason": "MARKET_ORDER",
+				"price": str(instance.price),
+				"requestedUnits": instance.units,
+				"tradeOpened": {
+					"tradeID": instance.id,
+					"units": instance.units,
+					"initialMarginRequired": instance.margin_required
+				}
 			}
 		return rep

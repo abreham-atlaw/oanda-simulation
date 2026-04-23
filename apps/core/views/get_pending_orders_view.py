@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.models import LimitOrder
-from apps.core.serializers import CreateOrderResponseSerializer
+from apps.core.serializers import CreateOrderResponseSerializer, LimitOrderSerializer
 
 
 class GetPendingOrdersView(APIView):
@@ -12,9 +12,11 @@ class GetPendingOrdersView(APIView):
 	def get(self, request: Request, *args, **kwargs) -> Response:
 
 		instances = LimitOrder.objects.filter(account=request.account, close_time=None)
-		serializer = CreateOrderResponseSerializer(many=True, instance=instances)
+		serializer = LimitOrderSerializer(many=True, instance=instances)
 
 		return Response(
-			data=serializer.data,
+			data={
+				"orders": serializer.data
+			},
 			status=status.HTTP_200_OK
 		)
