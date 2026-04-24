@@ -40,6 +40,9 @@ class BackgroundTradeManager:
 		for trade in Trade.objects.filter(close_time=None, stop_loss__isnull=False):
 			cs = self.__get_latest_candlestick(trade)
 
+			if cs is None:
+				continue
+
 			mid_price = cs.low if trade.units > 0 else cs.high
 			trigger_price = (
 				self.__repository.get_bid_price(instrument=trade.instrument, price=mid_price)
@@ -70,6 +73,9 @@ class BackgroundTradeManager:
 	def __monitor_limit_orders(self):
 		for order in LimitOrder.objects.filter(close_time=None):
 			cs = self.__get_latest_candlestick(order)
+			if cs is None:
+				continue
+
 			mid_price = cs.low if order.units > 0 else cs.high
 			trigger_price = (
 				self.__repository.get_ask_price(instrument=order.instrument, price=mid_price)
