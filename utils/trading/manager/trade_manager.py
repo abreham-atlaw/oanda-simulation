@@ -200,9 +200,8 @@ class TradeManager:
 			take_profit=take_profit
 		)
 
-	@staticmethod
-	def cancel_order(order: LimitOrder):
-		order.close_time = datetime.now()
+	def cancel_order(self, order: LimitOrder):
+		order.close_time = self.__repository.get_datetime()
 		order.save()
 
 	def fill_limit_order(self, order: LimitOrder, price=None) -> Trade:
