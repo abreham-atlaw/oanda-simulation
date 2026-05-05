@@ -243,9 +243,9 @@ INSTRUMENT_TRADE_UNITS_PRECISION = {
 }
 
 INSTRUMENT_MARGIN_RATES = {
-	("AUD", "USD"): 0.05,
-	("EUR", "USD"): 0.0333,
-	("XAU", "USD"): 0.05
+	("AUD", "USD"): 0.1,
+	("EUR", "USD"): 0.1,
+	("XAU", "USD"): 0.1
 }
 
 WEEKEND_CLOSE_MARKET = True
