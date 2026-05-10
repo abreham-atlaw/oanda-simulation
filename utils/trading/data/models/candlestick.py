@@ -12,3 +12,4 @@ class Candlestick:
 	low: float
 	time: datetime
 	granularity: int
+	complete: bool

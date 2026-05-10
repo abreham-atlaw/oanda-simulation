@@ -49,7 +49,8 @@ class UtilsProvider:
 				df=UtilsProvider.provide_df(),
 				time_delta=account.time_delta,
 				spread_cost_percentage_map=SPREAD_COST_PERCENTAGE_MAP,
-				delta_multiplier=account.delta_multiplier
+				delta_multiplier=account.delta_multiplier,
+				ensure_candle_completion=settings.ENSURE_CANDLE_COMPLETION
 			)
 			UtilsProvider.__repositories[UtilsProvider.__get_key(account)] = repository
 

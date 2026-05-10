@@ -32,7 +32,7 @@ class CandlestickSerializer(serializers.Serializer):
 		__datetime_serializer = CustomDateTimeField()
 
 		return {
-			"complete": True,
+			"complete": instance.complete,
 			"volume": instance.volume,
 			"time": __datetime_serializer.to_representation(instance.time),
 			"mid": {

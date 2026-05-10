@@ -26,7 +26,8 @@ class DataFrameRepository(CurrencyRepository):
 			time_delta: int,
 			spread_cost_percentage_map: typing.Dict[typing.Tuple[str, str], float],
 			delta_multiplier: float = 1,
-			min_granularity=1
+			min_granularity=1,
+			ensure_candle_completion = True
 	):
 		self.df = self.__prepare_df(df)
 		self.__timedelta = timedelta(minutes=time_delta)
@@ -34,6 +35,7 @@ class DataFrameRepository(CurrencyRepository):
 		self.__delta_multiplier = delta_multiplier
 		self.__start_datetime = self.__translate_time(datetime.now(), multiply=False)
 		self.__min_granularity = min_granularity
+		self.__ensure_candle_completion = ensure_candle_completion
 
 	@staticmethod
 	def __prepare_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -147,9 +149,12 @@ class DataFrameRepository(CurrencyRepository):
 
 	@stats.track_func(key="DataFrameRepository.get_candlestick")
 	def get_candlestick(self, instrument: Instrument, granularity: int, count: int, to: datetime) -> List[Candlestick]:
+		target_time = self.__translate_time(to)
+		if self.__ensure_candle_completion:
+			target_time = self.__round_time(target_time, gran=granularity)
 		instrument_df = self.__filter_df(
 			instrument=instrument,
-			time=self.__round_time(self.__translate_time(to), gran=granularity)
+			time=target_time
 		)
 		instrument_df: pd.DataFrame = self.__condense_granularity(instrument_df, g=granularity).tail(count)
 
@@ -157,7 +162,19 @@ class DataFrameRepository(CurrencyRepository):
 			raise ValueError("Not enough data")
 
 		return [
-			Candlestick(row['v'], row['o'], row['c'], row['h'], row['l'], row['time'], granularity)
+			Candlestick(
+				row['v'],
+				row['o'],
+				row['c'],
+				row['h'],
+				row['l'],
+				row['time'],
+				granularity,
+				complete=(
+						self.__ensure_candle_completion or
+						row["time"] + timedelta(minutes=granularity) < target_time
+				)
+			)
 			for _, row in instrument_df.iterrows()
 		]
 
