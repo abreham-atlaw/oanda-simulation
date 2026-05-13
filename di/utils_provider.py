@@ -76,5 +76,6 @@ class UtilsProvider:
 	def provide_background_manager(manager: TradeManager) -> BackgroundTradeManager:
 		return BackgroundTradeManager(
 			manager=manager,
-			sleep_time=settings.BACKGROUND_MANAGER_SLEEP_TIME
+			sleep_time=settings.BACKGROUND_MANAGER_SLEEP_TIME,
+			same_candle_trigger=settings.SAME_CANDLE_TRIGGER
 		)
