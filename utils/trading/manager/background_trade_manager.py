@@ -20,19 +20,23 @@ class BackgroundTradeManager:
 	def __init__(
 			self,
 			manager: TradeManager,
-			sleep_time: float = 1.0
+			sleep_time: float = 1.0,
+			same_candle_trigger: bool = True
 	):
 		self.__manager = manager
 		self.__repository = self.__manager.get_repository()
 		self.__sleep_time = sleep_time
 		self.__thread = None
 		self.__running = False
+		self.__same_candle_trigger = same_candle_trigger
 
 	def __get_latest_candlestick(self, order: Order) -> typing.Optional[Candlestick]:
 		cs: Candlestick = self.__repository.get_latest_candlestick(order.instrument)
 		time_range = self.__repository.get_candlestick_timerange(cs)
 
-		if time_range[1] < order.open_time:
+		trigger_time = time_range[1] if self.__same_candle_trigger else time_range[0]
+
+		if trigger_time < order.open_time:
 			return None
 		return cs
 
