@@ -61,9 +61,15 @@ class BackgroundTradeManager:
 			)
 
 			if np.sign(trade.units) * trigger_price <= np.sign(trade.units) * trade.stop_loss:
+
+				close_price = mid_price
+				if self.__infinite_trigger_liquidity:
+					spread_cost = np.sign(trade.units)*self.__repository.get_spread_cost(instrument=trade.instrument, price=mid_price) / 2
+					close_price = trade.take_profit - spread_cost
+
 				self.__manager.close_trade(
 					trade,
-					price=trade.stop_loss if self.__infinite_trigger_liquidity else mid_price
+					price=close_price
 				)
 
 	def __monitor_take_profit(self):
@@ -81,9 +87,15 @@ class BackgroundTradeManager:
 			)
 
 			if np.sign(trade.units) * trigger_price >= np.sign(trade.units) * trade.take_profit:
+
+				close_price = mid_price
+				if self.__infinite_trigger_liquidity:
+					spread_cost = np.sign(trade.units)*self.__repository.get_spread_cost(instrument=trade.instrument, price=mid_price) / 2
+					close_price = trade.take_profit + spread_cost
+
 				self.__manager.close_trade(
 					trade,
-					price=trade.take_profit if self.__infinite_trigger_liquidity else mid_price
+					price=close_price
 				)
 
 	def __monitor_limit_orders(self):
@@ -100,9 +112,16 @@ class BackgroundTradeManager:
 			)
 
 			if np.sign(order.units) * trigger_price <= np.sign(order.units) * order.price:
+
+				enter_price = mid_price
+				if self.__infinite_trigger_liquidity:
+					spread_cost = np.sign(order.units) * self.__repository.get_spread_cost(instrument=order.instrument,
+																						   price=order.price) / 2
+					enter_price = order.price - spread_cost
+
 				self.__manager.fill_limit_order(
 					order,
-					price=order.price if self.__infinite_trigger_liquidity else mid_price
+					price=enter_price
 				)
 
 	def _step(self):
