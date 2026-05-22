@@ -21,7 +21,8 @@ class BackgroundTradeManager:
 			self,
 			manager: TradeManager,
 			sleep_time: float = 1.0,
-			same_candle_trigger: bool = True
+			same_candle_trigger: bool = True,
+			infinite_trigger_liquidity: bool = False
 	):
 		self.__manager = manager
 		self.__repository = self.__manager.get_repository()
@@ -29,6 +30,11 @@ class BackgroundTradeManager:
 		self.__thread = None
 		self.__running = False
 		self.__same_candle_trigger = same_candle_trigger
+		self.__infinite_trigger_liquidity = infinite_trigger_liquidity
+		logger.info(
+			f"Initialized {self.__class__.__name__} with manager={manager.__class__.__name__}, "
+			f"sleep_time={sleep_time}, same_candle_trigger={same_candle_trigger}, infinite_trigger_liquidity={infinite_trigger_liquidity}"
+		)
 
 	def __get_latest_candlestick(self, order: Order) -> typing.Optional[Candlestick]:
 		cs: Candlestick = self.__repository.get_latest_candlestick(order.instrument)
@@ -55,7 +61,10 @@ class BackgroundTradeManager:
 			)
 
 			if np.sign(trade.units) * trigger_price <= np.sign(trade.units) * trade.stop_loss:
-				self.__manager.close_trade(trade, price=mid_price)
+				self.__manager.close_trade(
+					trade,
+					price=trade.stop_loss if self.__infinite_trigger_liquidity else mid_price
+				)
 
 	def __monitor_take_profit(self):
 		for trade in Trade.objects.filter(close_time=None, take_profit__isnull=False):
@@ -64,7 +73,7 @@ class BackgroundTradeManager:
 			if cs is None:
 				continue
 
-			mid_price = cs.high if trade.units > 0 else cs.low
+			mid_price = (cs.high if trade.units > 0 else cs.low)
 			trigger_price = (
 				self.__repository.get_bid_price(instrument=trade.instrument, price=mid_price)
 				if trade.units > 0 else
@@ -72,7 +81,10 @@ class BackgroundTradeManager:
 			)
 
 			if np.sign(trade.units) * trigger_price >= np.sign(trade.units) * trade.take_profit:
-				self.__manager.close_trade(trade, price=mid_price)
+				self.__manager.close_trade(
+					trade,
+					price=trade.take_profit if self.__infinite_trigger_liquidity else mid_price
+				)
 
 	def __monitor_limit_orders(self):
 		for order in LimitOrder.objects.filter(close_time=None):
@@ -88,7 +100,10 @@ class BackgroundTradeManager:
 			)
 
 			if np.sign(order.units) * trigger_price <= np.sign(order.units) * order.price:
-				self.__manager.fill_limit_order(order, price=mid_price)
+				self.__manager.fill_limit_order(
+					order,
+					price=order.price if self.__infinite_trigger_liquidity else mid_price
+				)
 
 	def _step(self):
 		self.__monitor_stop_loss()

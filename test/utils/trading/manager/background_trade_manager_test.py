@@ -46,7 +46,8 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 			self.repository
 		)
 		self.bg_manager = BackgroundTradeManager(
-			manager=self.manager
+			manager=self.manager,
+			infinite_trigger_liquidity=True
 		)
 		self.bg_manager.start()
 
@@ -147,4 +148,4 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 		self.assertEqual(len(trades), 1)
 		trade = trades[0]
 
-		print(f"Order Filled at: {trade.open_time}@{trade.price} with spread: {self.repository.get_spread_cost()}")
+		print(f"Order Filled at: {trade.open_time}@{trade.price} with spread: {self.repository.get_spread_cost(trade.instrument)}")

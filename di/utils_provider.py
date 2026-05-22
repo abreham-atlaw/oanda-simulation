@@ -77,5 +77,6 @@ class UtilsProvider:
 		return BackgroundTradeManager(
 			manager=manager,
 			sleep_time=settings.BACKGROUND_MANAGER_SLEEP_TIME,
-			same_candle_trigger=settings.SAME_CANDLE_TRIGGER
+			same_candle_trigger=settings.SAME_CANDLE_TRIGGER,
+			infinite_trigger_liquidity=settings.INFINITE_TRIGGER_LIQUIDITY
 		)
