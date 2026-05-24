@@ -232,13 +232,13 @@ STATS_DUMP_PATH = RES_PATH / "stats" / f"{datetime.now().timestamp()}.json"
 BACKGROUND_MANAGER_SLEEP_TIME = 0.1
 
 INSTRUMENT_DISPLAY_PRECISION = {
-	("AUD", "USD"): 5,
+	("XAG", "USD"): 5,
 	("EUR", "USD"): 5,
 	("XAU", "USD"): 2,
 }
 
 INSTRUMENT_TRADE_UNITS_PRECISION = {
-	("AUD", "USD"): 0,
+	("XAG", "USD"): 0,
 	("EUR", "USD"): 0,
 	("XAU", "USD"): 1
 }
