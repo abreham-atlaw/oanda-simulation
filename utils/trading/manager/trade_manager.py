@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from apps.authentication.models import Account
-from apps.core.models import Trade, LimitOrder
+from apps.core.models import Trade, LimitOrder, StopOrder
 from di.misc_provider import logger
 from utils.devtools import stats
 from utils.trading.data.models import Instrument
@@ -200,11 +200,32 @@ class TradeManager:
 			take_profit=take_profit
 		)
 
-	def cancel_order(self, order: LimitOrder):
+	def create_stop_order(
+			self,
+			account: Account,
+			price: float,
+			instrument: Instrument,
+			units: int,
+			stop_loss: float | None = None,
+			take_profit: float | None = None
+	) -> StopOrder:
+
+		return StopOrder.objects.create(
+			account=account,
+			price=price,
+			units=units,
+			base_currency=instrument[0],
+			quote_currency=instrument[1],
+			open_time=self.__repository.get_datetime(),
+			stop_loss=stop_loss,
+			take_profit=take_profit
+		)
+
+	def cancel_order(self, order: typing.Union[LimitOrder, StopOrder]):
 		order.close_time = self.__repository.get_datetime()
 		order.save()
 
-	def fill_limit_order(self, order: LimitOrder, price=None) -> Trade:
+	def fill_order(self, order: LimitOrder, price=None) -> Trade:
 		self.cancel_order(order)
 		trade = self.open_trade(
 			account=order.account,
