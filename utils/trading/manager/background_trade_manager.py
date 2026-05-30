@@ -7,7 +7,7 @@ import numpy as np
 import time
 from threading import Thread
 
-from apps.core.models import Trade, LimitOrder
+from apps.core.models import Trade, LimitOrder, StopOrder
 from apps.core.models import Order
 from di import MiscProvider
 from .trade_manager import TradeManager
@@ -65,7 +65,7 @@ class BackgroundTradeManager:
 				close_price = mid_price
 				if self.__infinite_trigger_liquidity:
 					spread_cost = np.sign(trade.units)*self.__repository.get_spread_cost(instrument=trade.instrument, price=mid_price) / 2
-					close_price = trade.take_profit - spread_cost
+					close_price = trade.take_profit + spread_cost
 
 				self.__manager.close_trade(
 					trade,
@@ -119,7 +119,33 @@ class BackgroundTradeManager:
 																						   price=order.price) / 2
 					enter_price = order.price - spread_cost
 
-				self.__manager.fill_limit_order(
+				self.__manager.fill_order(
+					order,
+					price=enter_price
+				)
+
+	def __monitor_stop_orders(self):
+		for order in StopOrder.objects.filter(close_time=None):
+			cs = self.__get_latest_candlestick(order)
+			if cs is None:
+				continue
+
+			mid_price = cs.high if order.units > 0 else cs.low
+			trigger_price = (
+				self.__repository.get_ask_price(instrument=order.instrument, price=mid_price)
+				if order.units > 0 else
+				self.__repository.get_bid_price(instrument=order.instrument, price=mid_price)
+			)
+
+			if np.sign(order.units) * trigger_price >= np.sign(order.units) * order.price:
+
+				enter_price = mid_price
+				if self.__infinite_trigger_liquidity:
+					spread_cost = np.sign(order.units) * self.__repository.get_spread_cost(instrument=order.instrument,
+																						   price=order.price) / 2
+					enter_price = order.price - spread_cost
+
+				self.__manager.fill_order(
 					order,
 					price=enter_price
 				)
@@ -128,6 +154,7 @@ class BackgroundTradeManager:
 		self.__monitor_stop_loss()
 		self.__monitor_take_profit()
 		self.__monitor_limit_orders()
+		self.__monitor_stop_orders()
 
 	def _loop(self):
 		while self.__running:

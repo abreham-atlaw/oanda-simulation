@@ -8,7 +8,7 @@ from django import test
 
 from Oanda import settings
 from apps.authentication.models import Account
-from apps.core.models import Trade, LimitOrder
+from apps.core.models import Trade, LimitOrder, StopOrder
 from di import MiscProvider
 from utils.trading.data.repository.dataframe_repository import DataFrameRepository
 from utils.trading.manager import BackgroundTradeManager, TradeManager
@@ -127,7 +127,7 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 		logger.info(f"Ordering SELL @ {price} with Limit Order @ {limit_price}")
 		order = self.manager.create_limit_order(
 			account=self.account,
-			instrument=("AUD", "USD"),
+			instrument=instrument,
 			units=-100,
 			price=limit_price
 		)
@@ -142,6 +142,41 @@ class BackgroundTradeManagerTest(test.TransactionTestCase):
 		time.sleep(INCREMENT)
 		logger.info(f"Slept {INCREMENT}. Price: {self.repository.get_price(instrument)}")
 		order = LimitOrder.objects.get(id=order.id)
+		self.assertIsNotNone(order.close_time)
+
+		trades = self.__get_open_trades()
+		self.assertEqual(len(trades), 1)
+		trade = trades[0]
+
+		print(f"Order Filled at: {trade.open_time}@{trade.price} with spread: {self.repository.get_spread_cost(trade.instrument)}")
+
+	def test_background_trade_manager_stop_order(self):
+		instrument = ("AUD", "USD")
+
+		self.assertEqual(len(self.__get_open_trades()), 0)
+
+		INCREMENT = 10
+
+		price = self.repository.get_price(instrument)
+		limit_price = price + INCREMENT
+		logger.info(f"Ordering BUY @ {price} with Limit Order @ {limit_price}")
+		order = self.manager.create_stop_order(
+			account=self.account,
+			instrument=("AUD", "USD"),
+			units=100,
+			price=limit_price
+		)
+
+		self.assertIsNotNone(order.price)
+
+		time.sleep(INCREMENT // 2)
+		logger.info(f"Slept {INCREMENT // 2}. Price: {self.repository.get_price(instrument)}")
+		order = StopOrder.objects.get(id=order.id)
+		self.assertEqual(order.close_time, None)
+
+		time.sleep(INCREMENT)
+		logger.info(f"Slept {INCREMENT}. Price: {self.repository.get_price(instrument)}")
+		order = StopOrder.objects.get(id=order.id)
 		self.assertIsNotNone(order.close_time)
 
 		trades = self.__get_open_trades()

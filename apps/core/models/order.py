@@ -1,4 +1,6 @@
 import typing
+import uuid
+from uuid import UUID
 
 from django.db import models
 
@@ -14,7 +16,7 @@ class Order(models.Model):
 		open = "OPEN"
 		closed = "CLOSED"
 
-	id: int = models.AutoField(primary_key=True)
+	id: UUID = models.UUIDField(default=uuid.uuid4, primary_key=True)
 	account: Account = models.ForeignKey(Account, on_delete=models.CASCADE)
 	price: float = models.FloatField()
 	realized_pl: typing.Optional[float] = models.FloatField(default=0.0)

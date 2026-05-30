@@ -23,8 +23,15 @@ class CreateOrderView(APIView):
 		serializer = CreateOrderRequestSerializer(data=request.data)
 		serializer.is_valid(raise_exception=True)
 
-		if serializer.validated_data.pop("type") == CreateOrderRequestSerializer.OrderTypes.limit:
+		order_type = serializer.validated_data.pop("type")
+
+		if order_type == CreateOrderRequestSerializer.OrderTypes.limit:
 			trade = manager.create_limit_order(
+				request.account,
+				**serializer.validated_data
+			)
+		elif order_type == CreateOrderRequestSerializer.OrderTypes.stop:
+			trade = manager.create_stop_order(
 				request.account,
 				**serializer.validated_data
 			)

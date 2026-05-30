@@ -2,7 +2,7 @@ import typing
 
 from rest_framework import serializers
 
-from apps.core.models import Trade, LimitOrder
+from apps.core.models import Trade, LimitOrder, StopOrder
 from apps.core.serializers import InstrumentSerializer
 from .price_serializer import PriceSerializer
 
@@ -12,7 +12,8 @@ class CreateOrderRequestSerializer(serializers.Serializer):
 	class OrderTypes:
 		market = "MARKET",
 		limit = "LIMIT"
-		all = [market, limit]
+		stop = "STOP"
+		all = [market, limit, stop]
 
 	units = serializers.FloatField()
 	instrument = InstrumentSerializer()
@@ -31,7 +32,7 @@ class CreateOrderResponseSerializer(serializers.Serializer):
 		super().__init__(*args, **kwargs)
 		self.__price_serializer = PriceSerializer(allow_null=True)
 
-	def to_representation(self, instance: typing.Union[Trade, LimitOrder]):
+	def to_representation(self, instance: typing.Union[Trade, LimitOrder, StopOrder]):
 
 		is_trade = isinstance(instance, Trade)
 
@@ -40,7 +41,7 @@ class CreateOrderResponseSerializer(serializers.Serializer):
 				"reason": "MARKET_ORDER" if is_trade else "CLIENT_ORDER",
 				"orderID": instance.id,
 				"units": instance.units,
-				"type": "MARKET_ORDER" if is_trade else "LIMIT_ORDER",
+				"type": "MARKET_ORDER" if is_trade else ("LIMIT_ORDER" if isinstance(instance, LimitOrder) else "STOP_ORDER"),
 
 				"stopLossOnFill": self.__price_serializer.to_representation(instance.stop_loss),
 				"takeProfitOnFill": self.__price_serializer.to_representation(instance.take_profit)
