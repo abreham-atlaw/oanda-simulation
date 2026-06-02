@@ -11,7 +11,7 @@ from threading import Thread
 from apps.core.models import Trade, LimitOrder, StopOrder
 from apps.core.models import Order
 from di import MiscProvider
-from . import InvalidTriggerValueException
+from .exceptions import InvalidTriggerValueException
 from .trade_manager import TradeManager
 from ..data.models import Candlestick
 
