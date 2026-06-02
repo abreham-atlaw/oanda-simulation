@@ -1,4 +1,5 @@
 import logging
+import traceback
 import typing
 from datetime import datetime
 
@@ -10,6 +11,7 @@ from threading import Thread
 from apps.core.models import Trade, LimitOrder, StopOrder
 from apps.core.models import Order
 from di import MiscProvider
+from . import InvalidTriggerValueException
 from .trade_manager import TradeManager
 from ..data.models import Candlestick
 
@@ -98,6 +100,16 @@ class BackgroundTradeManager:
 					price=close_price
 				)
 
+	def __fill_order(self, order: Order, enter_price: float):
+		try:
+			self.__manager.fill_order(
+				order,
+				price=enter_price
+			)
+		except InvalidTriggerValueException:
+			logger.error(f"Encountered Error upon filling order: {order}.")
+			traceback.print_exc()
+
 	def __monitor_limit_orders(self):
 		for order in LimitOrder.objects.filter(close_time=None):
 			cs = self.__get_latest_candlestick(order)
@@ -119,10 +131,7 @@ class BackgroundTradeManager:
 																						   price=order.price) / 2
 					enter_price = order.price - spread_cost
 
-				self.__manager.fill_order(
-					order,
-					price=enter_price
-				)
+				self.__fill_order(order, enter_price)
 
 	def __monitor_stop_orders(self):
 		for order in StopOrder.objects.filter(close_time=None):
@@ -145,10 +154,7 @@ class BackgroundTradeManager:
 																						   price=order.price) / 2
 					enter_price = order.price - spread_cost
 
-				self.__manager.fill_order(
-					order,
-					price=enter_price
-				)
+				self.__fill_order(order, enter_price)
 
 	def _step(self):
 		self.__monitor_stop_loss()
