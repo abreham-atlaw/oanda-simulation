@@ -67,7 +67,7 @@ class BackgroundTradeManager:
 				close_price = mid_price
 				if self.__infinite_trigger_liquidity:
 					spread_cost = np.sign(trade.units)*self.__repository.get_spread_cost(instrument=trade.instrument, price=mid_price) / 2
-					close_price = trade.take_profit + spread_cost
+					close_price = trade.stop_loss + spread_cost
 
 				self.__manager.close_trade(
 					trade,
