@@ -26,8 +26,6 @@ class Order(models.Model):
 	open_time: datetime = models.DateTimeField()
 	close_time: typing.Optional[datetime] = models.DateTimeField(null=True)
 
-	stop_loss: typing.Optional[float] = models.FloatField(null=True)
-	take_profit: typing.Optional[float] = models.FloatField(null=True)
 
 	@property
 	def state(self) -> str:
