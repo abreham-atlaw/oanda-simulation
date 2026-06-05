@@ -1,4 +1,4 @@
 from .trade_manager import TradeManager
-from .background_trade_manager import BackgroundTradeManager
+from .trade_manager_daemon import TradeManagerDaemon
 from .exceptions import InvalidTriggerValueException, MarketClosedException, TradeException
 
