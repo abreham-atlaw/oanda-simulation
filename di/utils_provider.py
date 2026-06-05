@@ -10,7 +10,6 @@ from apps.authentication.models import Account
 from di.misc_provider import logger
 from utils.trading.data.repository import CurrencyRepository
 from utils.trading.data.repository.dataframe_repository import DataFrameRepository
-from utils.trading.manager import TradeManager, BackgroundTradeManager
 
 
 class UtilsProvider:
@@ -57,7 +56,8 @@ class UtilsProvider:
 		return repository
 
 	@staticmethod
-	def provide_manager(account: Account) -> TradeManager:
+	def provide_manager(account: Account) -> 'TradeManager':
+		from utils.trading.manager import TradeManager, TradeManagerDaemon
 		key = UtilsProvider.__get_key(account)
 		manager = UtilsProvider.__managers.get(key)
 
@@ -73,8 +73,9 @@ class UtilsProvider:
 		return manager
 
 	@staticmethod
-	def provide_background_manager(manager: TradeManager) -> BackgroundTradeManager:
-		return BackgroundTradeManager(
+	def provide_background_manager(manager: 'TradeManager') -> 'BackgroundTradeManager':
+		from utils.trading.manager import TradeManager, TradeManagerDaemon
+		return TradeManagerDaemon(
 			manager=manager,
 			sleep_time=settings.BACKGROUND_MANAGER_SLEEP_TIME,
 			same_candle_trigger=settings.SAME_CANDLE_TRIGGER,

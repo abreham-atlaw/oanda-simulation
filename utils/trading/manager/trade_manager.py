@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from apps.authentication.models import Account
-from apps.core.models import Trade, LimitOrder, StopOrder
+from apps.core.models import Trade, TriggerOrder
 from di.misc_provider import logger
 from utils.devtools import stats
 from utils.trading.data.models import Instrument
@@ -100,7 +100,7 @@ class TradeManager:
 
 		return validate_value(action, price, take_profit, 1) and validate_value(action, price, stop_loss, -1)
 
-	def __validate_trade(
+	def __validate_order(
 		self,
 		units: int,
 		price: float,
@@ -121,6 +121,22 @@ class TradeManager:
 			if trade.instrument == instrument and trade.units == -units:
 				return trade
 		return None
+
+	def __place_trade_related_order(self, trade: Trade, price: float, order_type: int) -> TriggerOrder:
+		self.place_order(
+			trade.account,
+			price=price,
+			instrument=trade.instrument,
+			units=-trade.units,
+			order_type=order_type,
+			related_trade=trade
+		)
+
+	def place_stop_loss(self, trade: Trade, stop_loss: float):
+		self.__place_trade_related_order(trade, stop_loss, TriggerOrder.Type.STOP)
+
+	def place_take_profit(self, trade: Trade, take_profit: float):
+		self.__place_trade_related_order(trade, take_profit, TriggerOrder.Type.LIMIT)
 
 	def open_trade(
 			self,
@@ -148,21 +164,26 @@ class TradeManager:
 			price=price
 		)
 
-		self.__validate_trade(
+		self.__validate_order(
 			units, price, stop_loss, take_profit
 		)
 
-		return Trade.objects.create(
+		trade = Trade.objects.create(
 			account=account,
 			price=price,
 			units=units,
 			margin_required=margin_required,
 			base_currency=instrument[0],
 			quote_currency=instrument[1],
-			open_time=self.__repository.get_datetime(),
-			stop_loss=stop_loss,
-			take_profit=take_profit
+			open_time=self.__repository.get_datetime()
 		)
+
+		if stop_loss is not None:
+			self.place_stop_loss(trade, stop_loss)
+		if take_profit is not None:
+			self.place_take_profit(trade, take_profit)
+
+		return trade
 
 	def close_trade(self, trade: Trade, close_time: datetime = None, price: float = None):
 
@@ -179,17 +200,32 @@ class TradeManager:
 		trade.account.balance += pl
 		trade.account.save()
 
-	def create_limit_order(
+		for order in trade.related_orders:
+			self.cancel_order(order)
+
+	def place_order(
 			self,
 			account: Account,
 			price: float,
 			instrument: Instrument,
 			units: int,
+			order_type: int,
 			stop_loss: float | None = None,
-			take_profit: float | None = None
-	) -> LimitOrder:
+			take_profit: float | None = None,
+			related_trade: Trade | None = None
+	) -> TriggerOrder:
 
-		return LimitOrder.objects.create(
+		if order_type not in TriggerOrder.Type.ALL:
+			raise ValueError(f"Received an invalid order type, {order_type}. Available types: {TriggerOrder.Type.ALL}")
+
+		self.__validate_order(
+			units,
+			price,
+			stop_loss,
+			take_profit
+		)
+
+		return TriggerOrder.objects.create(
 			account=account,
 			price=price,
 			units=units,
@@ -197,35 +233,16 @@ class TradeManager:
 			quote_currency=instrument[1],
 			open_time=self.__repository.get_datetime(),
 			stop_loss=stop_loss,
-			take_profit=take_profit
+			take_profit=take_profit,
+			order_type=order_type,
+			trade=related_trade
 		)
 
-	def create_stop_order(
-			self,
-			account: Account,
-			price: float,
-			instrument: Instrument,
-			units: int,
-			stop_loss: float | None = None,
-			take_profit: float | None = None
-	) -> StopOrder:
-
-		return StopOrder.objects.create(
-			account=account,
-			price=price,
-			units=units,
-			base_currency=instrument[0],
-			quote_currency=instrument[1],
-			open_time=self.__repository.get_datetime(),
-			stop_loss=stop_loss,
-			take_profit=take_profit
-		)
-
-	def cancel_order(self, order: typing.Union[LimitOrder, StopOrder]):
+	def cancel_order(self, order: TriggerOrder):
 		order.close_time = self.__repository.get_datetime()
 		order.save()
 
-	def fill_order(self, order: LimitOrder, price=None) -> Trade:
+	def fill_order(self, order: TriggerOrder, price=None) -> Trade:
 		self.cancel_order(order)
 		trade = self.open_trade(
 			account=order.account,

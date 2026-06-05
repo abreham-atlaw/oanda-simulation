@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
-from apps.core.models import LimitOrder
+from apps.core.models import TriggerOrder
 
 
 class CancelOrderSerializer(serializers.Serializer):
 
-	def to_representation(self, instance: LimitOrder):
+	def to_representation(self, instance: TriggerOrder):
 		return {
 			"orderCancelTransaction": {
 				"id": str(instance.id),
