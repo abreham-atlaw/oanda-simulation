@@ -3,6 +3,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.models import TriggerOrder
 from apps.core.serializers import CreateOrderRequestSerializer, CreateOrderResponseSerializer
 from di.misc_provider import logger
 from di.utils_provider import UtilsProvider
@@ -25,15 +26,15 @@ class CreateOrderView(APIView):
 
 		order_type = serializer.validated_data.pop("type")
 
-		if order_type == CreateOrderRequestSerializer.OrderTypes.limit:
-			trade = manager.create_limit_order(
+		if order_type in [CreateOrderRequestSerializer.OrderTypes.limit, CreateOrderRequestSerializer.OrderTypes.stop]:
+			type_map = {
+				CreateOrderRequestSerializer.OrderTypes.limit: TriggerOrder.Type.LIMIT,
+				CreateOrderRequestSerializer.OrderTypes.stop: TriggerOrder.Type.STOP
+			}
+			trade = manager.place_order(
 				request.account,
-				**serializer.validated_data
-			)
-		elif order_type == CreateOrderRequestSerializer.OrderTypes.stop:
-			trade = manager.create_stop_order(
-				request.account,
-				**serializer.validated_data
+				**serializer.validated_data,
+				order_type=type_map[order_type]
 			)
 		else:
 			try:

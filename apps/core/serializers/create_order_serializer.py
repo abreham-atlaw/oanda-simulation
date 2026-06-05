@@ -1,8 +1,9 @@
+import decimal
 import typing
 
 from rest_framework import serializers
 
-from apps.core.models import Trade, LimitOrder, StopOrder
+from apps.core.models import Trade, TriggerOrder
 from apps.core.serializers import InstrumentSerializer
 from .price_serializer import PriceSerializer
 
@@ -25,6 +26,9 @@ class CreateOrderRequestSerializer(serializers.Serializer):
 	def to_internal_value(self, data):
 		return super().to_internal_value(data["order"])
 
+	def validate_price(self, value: decimal.Decimal) -> float:
+		return float(value)
+
 
 class CreateOrderResponseSerializer(serializers.Serializer):
 
@@ -32,7 +36,7 @@ class CreateOrderResponseSerializer(serializers.Serializer):
 		super().__init__(*args, **kwargs)
 		self.__price_serializer = PriceSerializer(allow_null=True)
 
-	def to_representation(self, instance: typing.Union[Trade, LimitOrder, StopOrder]):
+	def to_representation(self, instance: typing.Union[Trade, TriggerOrder]):
 
 		is_trade = isinstance(instance, Trade)
 
@@ -41,7 +45,7 @@ class CreateOrderResponseSerializer(serializers.Serializer):
 				"reason": "MARKET_ORDER" if is_trade else "CLIENT_ORDER",
 				"orderID": instance.id,
 				"units": instance.units,
-				"type": "MARKET_ORDER" if is_trade else ("LIMIT_ORDER" if isinstance(instance, LimitOrder) else "STOP_ORDER"),
+				"type": "MARKET_ORDER" if is_trade else ("LIMIT_ORDER" if instance.is_limit_order else "STOP_ORDER"),
 
 				"stopLossOnFill": self.__price_serializer.to_representation(instance.stop_loss),
 				"takeProfitOnFill": self.__price_serializer.to_representation(instance.take_profit)

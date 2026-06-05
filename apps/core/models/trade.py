@@ -38,3 +38,11 @@ class Trade(Order):
 			if order.is_take_profit:
 				return order
 		return None
+
+	@property
+	def stop_loss(self) -> typing.Optional[float]:
+		return self.stop_loss_order.price if self.stop_loss_order is not None else None
+
+	@property
+	def take_profit(self) -> typing.Optional[float]:
+		return self.take_profit_order.price if self.take_profit_order is not None else None
