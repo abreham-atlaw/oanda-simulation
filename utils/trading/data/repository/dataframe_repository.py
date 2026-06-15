@@ -159,7 +159,7 @@ class DataFrameRepository(CurrencyRepository):
 		instrument_df: pd.DataFrame = self.__condense_granularity(instrument_df, g=granularity).tail(count)
 
 		if instrument_df.shape[0] < count:
-			raise ValueError("Not enough data")
+			raise ValueError(f"Not enough data for instrument={instrument}, granularity: {granularity}, count: {count}, to={target_time}")
 
 		return [
 			Candlestick(

@@ -243,7 +243,6 @@ class TradeManager:
 		order.save()
 
 	def fill_order(self, order: TriggerOrder, price=None) -> Trade:
-		self.cancel_order(order)
 		trade = self.open_trade(
 			account=order.account,
 			instrument=order.instrument,
@@ -252,4 +251,5 @@ class TradeManager:
 			take_profit=order.take_profit,
 			price=price
 		)
+		self.cancel_order(order)
 		return trade
