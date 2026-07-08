@@ -16,6 +16,8 @@ class GetOrderView(APIView):
 		serializer = OrderSerializer(instance=order)
 
 		return Response(
-			data=serializer.data,
+			data={
+				"order": serializer.data
+			},
 			status=status.HTTP_200_OK
 		)

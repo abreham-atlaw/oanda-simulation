@@ -17,6 +17,8 @@ class GetTradeView(APIView):
 		serializer = TradeSerializer(instance=trade)
 
 		return Response(
-			data=serializer.data,
+			data={
+				"trade": serializer.data,
+			},
 			status=status.HTTP_200_OK
 		)
