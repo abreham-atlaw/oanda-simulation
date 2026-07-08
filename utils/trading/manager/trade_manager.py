@@ -175,7 +175,8 @@ class TradeManager:
 			margin_required=margin_required,
 			base_currency=instrument[0],
 			quote_currency=instrument[1],
-			open_time=self.__repository.get_datetime()
+			open_time=self.__repository.get_datetime(),
+			state=Trade.State.open
 		)
 
 		if stop_loss is not None:
@@ -195,6 +196,7 @@ class TradeManager:
 
 		trade.close_time = close_time
 		trade.close_price = price
+		trade.state = Trade.State.closed
 		trade.save()
 
 		trade.account.balance += pl
@@ -235,11 +237,13 @@ class TradeManager:
 			stop_loss=stop_loss,
 			take_profit=take_profit,
 			order_type=order_type,
-			trade=related_trade
+			trade=related_trade,
+			state=TriggerOrder.State.pending
 		)
 
-	def cancel_order(self, order: TriggerOrder):
+	def cancel_order(self, order: TriggerOrder, filled: bool = False):
 		order.close_time = self.__repository.get_datetime()
+		order.state = TriggerOrder.State.filled if filled else TriggerOrder.State.cancelled
 		order.save()
 
 	def fill_order(self, order: TriggerOrder, price=None) -> Trade:
@@ -251,5 +255,5 @@ class TradeManager:
 			take_profit=order.take_profit,
 			price=price
 		)
-		self.cancel_order(order)
+		self.cancel_order(order, filled=True)
 		return trade

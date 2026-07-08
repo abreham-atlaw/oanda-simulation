@@ -74,15 +74,19 @@ class TradeManagerTest(test.TransactionTestCase):
 		self.assertTrue(trade.stop_loss_order.is_stop_loss)
 		self.assertEqual(trade.stop_loss_order.price, STOP_LOSS)
 		self.assertEqual(trade.take_profit_order.price, TAKE_PROFIT)
+		self.assertEqual(trade.state, Trade.State.open)
 
 		logger.info(f"Opened a Trade@{trade.price} at {trade.open_time.isoformat()}(Current Time: {self.repository.get_datetime().isoformat()})")
 
 		self.manager.close_trade(trade)
 
+		trade.refresh_from_db()
+
 		open_trades = Trade.objects.filter(account=self.account, close_time=None)
 		closed_trades = Trade.objects.filter(account=self.account, close_time__isnull=False)
 		self.assertEqual(len(open_trades), 0)
 		self.assertEqual(len(closed_trades), 1)
+		self.assertEqual(trade.state, Trade.State.closed)
 
 	def test_place_limit_order(self):
 		order = self.manager.place_order(
@@ -99,6 +103,7 @@ class TradeManagerTest(test.TransactionTestCase):
 		self.assertTrue(order.is_limit_order)
 		self.assertFalse(order.is_stop_order)
 		self.assertFalse(order.is_trade_related)
+		self.assertEqual(order.state, TriggerOrder.State.pending)
 
 	def test_place_stop_order(self):
 		order = self.manager.place_order(
@@ -115,6 +120,7 @@ class TradeManagerTest(test.TransactionTestCase):
 		self.assertTrue(order.is_stop_order)
 		self.assertFalse(order.is_limit_order)
 		self.assertFalse(order.is_trade_related)
+		self.assertEqual(order.state, TriggerOrder.State.pending)
 
 	def test_cancel_order(self):
 
@@ -127,10 +133,14 @@ class TradeManagerTest(test.TransactionTestCase):
 		)
 		open_orders = TriggerOrder.objects.filter(account=self.account, close_time=None)
 		self.assertEqual(len(open_orders), 1)
+		self.assertEqual(order.state, TriggerOrder.State.pending)
 
 		self.manager.cancel_order(order)
+
+		order.refresh_from_db()
 		open_orders = TriggerOrder.objects.filter(account=self.account, close_time=None)
 		self.assertEqual(len(open_orders), 0)
+		self.assertEqual(order.state, TriggerOrder.State.cancelled)
 
 	def test_fill_order(self):
 		ENTER_PRICE = 1950
@@ -150,11 +160,13 @@ class TradeManagerTest(test.TransactionTestCase):
 		open_orders = TriggerOrder.objects.filter(account=self.account, close_time=None)
 		self.assertEqual(len(open_orders), 1)
 		self.assertEqual(len(open_trades), 0)
+		self.assertEqual(order.state, TriggerOrder.State.pending)
 
 		trade = self.manager.fill_order(
 			order,
 			price=ENTER_PRICE
 		)
+		order.refresh_from_db()
 		open_trades = Trade.objects.filter(account=self.account, close_time=None)
 		open_orders = TriggerOrder.objects.filter(account=self.account, close_time=None)
 		self.assertEqual(len(open_orders), 2)
@@ -163,3 +175,4 @@ class TradeManagerTest(test.TransactionTestCase):
 		self.assertTrue(trade.stop_loss_order.price == STOP_LOSS)
 		self.assertTrue(trade.take_profit_order.price == TAKE_PROFIT)
 		self.assertTrue(trade.price, ENTER_PRICE)
+		self.assertEqual(order.state, TriggerOrder.State.filled)

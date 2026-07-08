@@ -13,6 +13,12 @@ class TriggerOrder(Order):
 		STOP = 1
 		ALL = [LIMIT, STOP]
 
+	class State:
+		pending = "PENDING"
+		filled = "FILLED"
+		triggered = "TRIGGERED"
+		cancelled = "CANCELLED"
+
 	trade: typing.Optional[float] = models.ForeignKey(Trade, on_delete=models.CASCADE, default=None, null=True)
 
 	stop_loss: typing.Optional[float] = models.FloatField(null=True)
