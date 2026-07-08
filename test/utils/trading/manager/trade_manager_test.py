@@ -141,6 +141,7 @@ class TradeManagerTest(test.TransactionTestCase):
 		open_orders = TriggerOrder.objects.filter(account=self.account, close_time=None)
 		self.assertEqual(len(open_orders), 0)
 		self.assertEqual(order.state, TriggerOrder.State.cancelled)
+		self.assertIsNone(order.trade_opened)
 
 	def test_fill_order(self):
 		ENTER_PRICE = 1950
@@ -176,3 +177,5 @@ class TradeManagerTest(test.TransactionTestCase):
 		self.assertTrue(trade.take_profit_order.price == TAKE_PROFIT)
 		self.assertTrue(trade.price, ENTER_PRICE)
 		self.assertEqual(order.state, TriggerOrder.State.filled)
+		self.assertIsInstance(order.trade_opened, Trade)
+		self.assertEqual(order.trade_opened.id, trade.id)

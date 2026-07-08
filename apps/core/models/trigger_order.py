@@ -19,7 +19,7 @@ class TriggerOrder(Order):
 		triggered = "TRIGGERED"
 		cancelled = "CANCELLED"
 
-	trade: typing.Optional[float] = models.ForeignKey(Trade, on_delete=models.CASCADE, default=None, null=True)
+	trade: typing.Optional[Trade] = models.ForeignKey(Trade, on_delete=models.CASCADE, default=None, null=True)
 
 	stop_loss: typing.Optional[float] = models.FloatField(null=True)
 	take_profit: typing.Optional[float] = models.FloatField(null=True)
@@ -28,6 +28,8 @@ class TriggerOrder(Order):
 		(t, t)
 		for t in Type.ALL
 	])
+
+	trade_opened: typing.Optional[Trade] = models.ForeignKey(Trade, on_delete=models.SET_NULL, default=None, null=True, related_name="trade_opened")
 
 	@property
 	def is_trade_related(self) -> bool:

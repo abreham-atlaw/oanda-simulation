@@ -255,5 +255,7 @@ class TradeManager:
 			take_profit=order.take_profit,
 			price=price
 		)
+		order.trade_opened = trade
+		order.save()
 		self.cancel_order(order, filled=True)
 		return trade
