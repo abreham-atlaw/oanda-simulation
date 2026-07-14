@@ -2,14 +2,16 @@ from django.urls import path
 
 from Oanda.settings import ACCOUNT_ID_KEY
 from apps.core.views import CreateOrderView, GetOpenTradesView, GetClosedTradesView, CloseTradeView, GetPricingView, \
-	GetCandlestickView, GetInstrumentsView, GetPendingOrdersView, CancelOrderView
+	GetCandlestickView, GetInstrumentsView, GetPendingOrdersView, CancelOrderView, GetTradeView, GetOrderView
 
 urlpatterns = [
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/orders/', CreateOrderView.as_view() ),
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/pendingOrders/', GetPendingOrdersView.as_view() ),
+    path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/orders/<uuid:order_id>/', GetOrderView.as_view() ),
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/orders/<uuid:order_id>/cancel', CancelOrderView.as_view() ),
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/openTrades/', GetOpenTradesView.as_view() ),
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/trades/', GetClosedTradesView.as_view() ),
+    path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/trades/<uuid:trade_id>/', GetTradeView.as_view() ),
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/trades/<uuid:trade_id>/close', CloseTradeView.as_view() ),
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/pricing/', GetPricingView.as_view() ),
     path(f'accounts/<uuid:{ACCOUNT_ID_KEY}>/instruments/<str:instrument>/candles/', GetCandlestickView.as_view() ),

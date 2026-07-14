@@ -20,6 +20,7 @@ from apps.core.models import Trade
 from apps.core.serializers import InstrumentSerializer
 from .price_serializer import PriceSerializer
 from di.utils_provider import UtilsProvider
+from .order_serializer import OrderSerializer
 
 
 class TradeSerializer(serializers.ModelSerializer):
@@ -38,8 +39,8 @@ class TradeSerializer(serializers.ModelSerializer):
 	unrealizedPL = serializers.SerializerMethodField()
 	marginUsed = serializers.SerializerMethodField()
 	instrument = InstrumentSerializer()
-	stopLossOrder = PriceSerializer(source="stop_loss")
-	takeProfitOrder = PriceSerializer(source="take_profit")
+	stopLossOrder = OrderSerializer(source="stop_loss_order", allow_null=True)
+	takeProfitOrder = OrderSerializer(source="take_profit_order", allow_null=True)
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -48,6 +49,7 @@ class TradeSerializer(serializers.ModelSerializer):
 	@property
 	def __manager(self):
 		if self.___manager is None:
+			instance = self.instance
 			if isinstance(self.instance, typing.Iterable):
 				instance = self.instance[0]
 			self.___manager = UtilsProvider.provide_manager(instance.account)

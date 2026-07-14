@@ -12,26 +12,16 @@ from utils.trading.data.models import Instrument
 
 class Order(models.Model):
 
-	class State:
-		open = "OPEN"
-		closed = "CLOSED"
-
 	id: UUID = models.UUIDField(default=uuid.uuid4, primary_key=True)
 	account: Account = models.ForeignKey(Account, on_delete=models.CASCADE)
 	price: float = models.FloatField()
-	realized_pl: typing.Optional[float] = models.FloatField(default=0.0)
+	state: str = models.CharField(max_length=16)
 	units: float = models.FloatField()
+	realized_pl: typing.Optional[float] = models.FloatField(default=0.0)
 	base_currency: str = models.CharField(max_length=3)
 	quote_currency: str = models.CharField(max_length=3)
 	open_time: datetime = models.DateTimeField()
 	close_time: typing.Optional[datetime] = models.DateTimeField(null=True)
-
-
-	@property
-	def state(self) -> str:
-		if self.close_time is None:
-			return Order.State.open
-		return Order.State.closed
 
 	class Meta:
 		abstract=True

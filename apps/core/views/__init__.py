@@ -6,3 +6,6 @@ from .get_candlestick_view import *
 from .get_instruments_view import *
 from .get_pending_orders_view import GetPendingOrdersView
 from .cancel_order_view import CancelOrderView
+from .get_trade_view import GetTradeView
+from .get_order_view import GetOrderView
+

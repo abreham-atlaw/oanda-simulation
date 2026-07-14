@@ -42,6 +42,7 @@ class CreateOrderResponseSerializer(serializers.Serializer):
 
 		rep = {
 			"orderCreateTransaction": {
+				"id": instance.id,
 				"reason": "MARKET_ORDER" if is_trade else "CLIENT_ORDER",
 				"orderID": instance.id,
 				"units": instance.units,
