@@ -243,9 +243,9 @@ INSTRUMENT_TRADE_UNITS_PRECISION = {
 }
 
 INSTRUMENT_MARGIN_RATES = {
-	("AUD", "USD"): 0.1,
-	("EUR", "USD"): 0.1,
-	("XAU", "USD"): 0.1
+	("AUD", "USD"): 1/20,
+	("EUR", "USD"): 1/30,
+	("XAU", "USD"): 1/20
 }
 
 ENSURE_CANDLE_COMPLETION = False
