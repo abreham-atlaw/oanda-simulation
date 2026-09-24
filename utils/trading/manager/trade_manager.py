@@ -122,21 +122,22 @@ class TradeManager:
 				return trade
 		return None
 
-	def __place_trade_related_order(self, trade: Trade, price: float, order_type: int) -> TriggerOrder:
+	def __place_trade_related_order(self, trade: Trade, price: float, order_type: int, open_time: datetime = None) -> TriggerOrder:
 		self.place_order(
 			trade.account,
 			price=price,
 			instrument=trade.instrument,
 			units=-trade.units,
 			order_type=order_type,
-			related_trade=trade
+			related_trade=trade,
+			open_time=open_time
 		)
 
-	def place_stop_loss(self, trade: Trade, stop_loss: float):
-		self.__place_trade_related_order(trade, stop_loss, TriggerOrder.Type.STOP)
+	def place_stop_loss(self, trade: Trade, stop_loss: float, open_time: datetime = None):
+		self.__place_trade_related_order(trade, stop_loss, TriggerOrder.Type.STOP, open_time=open_time)
 
-	def place_take_profit(self, trade: Trade, take_profit: float):
-		self.__place_trade_related_order(trade, take_profit, TriggerOrder.Type.LIMIT)
+	def place_take_profit(self, trade: Trade, take_profit: float, open_time: datetime = None):
+		self.__place_trade_related_order(trade, take_profit, TriggerOrder.Type.LIMIT, open_time=open_time)
 
 	def open_trade(
 			self,
@@ -145,7 +146,8 @@ class TradeManager:
 			units: int,
 			stop_loss: float | None = None,
 			take_profit: float | None = None,
-			price: float = None
+			price: float = None,
+			open_time: datetime = None
 	) -> Trade:
 		opposite_trade = self.__get_opposite_trade(account, instrument, units)
 		if opposite_trade is not None:
@@ -175,14 +177,14 @@ class TradeManager:
 			margin_required=margin_required,
 			base_currency=instrument[0],
 			quote_currency=instrument[1],
-			open_time=self.__repository.get_datetime(),
+			open_time=self.__repository.get_datetime() if open_time is None else open_time,
 			state=Trade.State.open
 		)
 
 		if stop_loss is not None:
-			self.place_stop_loss(trade, stop_loss)
+			self.place_stop_loss(trade, stop_loss, open_time=open_time)
 		if take_profit is not None:
-			self.place_take_profit(trade, take_profit)
+			self.place_take_profit(trade, take_profit, open_time=open_time)
 
 		return trade
 
@@ -214,7 +216,8 @@ class TradeManager:
 			order_type: int,
 			stop_loss: float | None = None,
 			take_profit: float | None = None,
-			related_trade: Trade | None = None
+			related_trade: Trade | None = None,
+			open_time: datetime = None
 	) -> TriggerOrder:
 
 		if order_type not in TriggerOrder.Type.ALL:
@@ -233,7 +236,7 @@ class TradeManager:
 			units=units,
 			base_currency=instrument[0],
 			quote_currency=instrument[1],
-			open_time=self.__repository.get_datetime(),
+			open_time=self.__repository.get_datetime() if open_time is None else open_time,
 			stop_loss=stop_loss,
 			take_profit=take_profit,
 			order_type=order_type,
@@ -246,14 +249,15 @@ class TradeManager:
 		order.state = TriggerOrder.State.filled if filled else TriggerOrder.State.cancelled
 		order.save()
 
-	def fill_order(self, order: TriggerOrder, price=None) -> Trade:
+	def fill_order(self, order: TriggerOrder, price=None, open_time: datetime = None) -> Trade:
 		trade = self.open_trade(
 			account=order.account,
 			instrument=order.instrument,
 			units=order.units,
 			stop_loss=order.stop_loss,
 			take_profit=order.take_profit,
-			price=price
+			price=price,
+			open_time=open_time
 		)
 		order.trade_opened = trade
 		order.save()

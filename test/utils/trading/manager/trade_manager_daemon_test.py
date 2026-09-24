@@ -21,14 +21,45 @@ logger = MiscProvider.provide_logger()
 
 class TradeManagerDaemonTest(test.TransactionTestCase):
 
-	def __create_mock_repository(self):
-		SIZE = 1000
-		df = pd.DataFrame(columns=["v", "o", "h", "l", "c", "time", "base_currency", "quote_currency"])
+	@staticmethod
+	def __generate_sinusoidal_values(df: pd.DataFrame, size: int):
 		for col in ["v", "o", "h", "l", "c"]:
-			df[col] = (np.sin(np.linspace(0, 4 * np.pi, SIZE)) * 100 + 2000) + 10 * (
+			df[col] = (np.sin(np.linspace(0, 4 * np.pi, size)) * 100 + 2000) + 10 * (
 				1 if col == "h" else -1 if col == "l" else 0)
+
+	def __create_expception_value_generator(
+			self,
+			constant_values: typing.Tuple[float, float, float, float],
+			exception_values: typing.Tuple[float, float, float, float],
+			placement: float
+	) -> typing.Callable[[pd.DataFrame, int], None]:
+
+			assert len(constant_values) == len(exception_values) == 4
+			assert 0 <= placement <= 1.0
+
+			def generate_exception_values(df: pd.DataFrame, size: int):
+				placement_idx = int(size * placement)
+
+				values = [
+					np.zeros(size) + constant_values[i]
+					for i in range(len(constant_values))
+				]
+				for i in range(4):
+					values[i][placement_idx] = exception_values[i]
+
+				df["c"], df["l"], df["h"], df["o"] = values
+
+				df["v"] = np.zeros(size) + 100
+
+			return generate_exception_values
+
+	def __create_mock_repository(self, generator: typing.Callable[[pd.DataFrame, int], None], size: int):
+		SIZE = size
+		df = pd.DataFrame(columns=["v", "o", "h", "l", "c", "time", "base_currency", "quote_currency"])
+
 		df["time"] = [(datetime.now() + timedelta(minutes=i - SIZE // 2)).replace(tzinfo=timezone.utc).strftime(
 			"%Y-%m-%d %H:%M:%S+00:00") for i in range(SIZE)]
+		generator(df, SIZE)
 		df["base_currency"], df["quote_currency"] = self.instrument
 		return DataFrameRepository(
 			df=df,
@@ -42,8 +73,9 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		TriggerOrder.objects.all().delete()
 		Trade.objects.all().delete()
 
-	def setUp(self):
-		super().setUp()
+	def _setUp(self, generator=None, size=500):
+		if generator is None:
+			generator = self.__generate_sinusoidal_values
 		self.instrument = ("XAU", "USD")
 		self.account = Account.objects.create(
 			balance=100.0,
@@ -52,7 +84,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 			delta_multiplier=1,
 			time_delta=0
 		)
-		self.repository = self.__create_mock_repository()
+		self.repository = self.__create_mock_repository(generator=generator, size=size)
 		self.manager = TradeManager(
 			self.repository
 		)
@@ -66,8 +98,10 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 	def tearDown(self):
 		self.manager_daemon.stop()
 		self.__clean_orders()
+		plt.close()
 
 	def test_plot_dataset(self):
+		self._setUp()
 		plt.plot(self.repository.df["time"], self.repository.df[["c", "l", "h"]])
 		plt.grid()
 		plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
@@ -78,7 +112,8 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		ax.grid()
 		ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 
-		ax.plot(self.repository.df["time"], self.repository.df[["c", "l", "h"]])
+		ax.plot(self.repository.df["time"], self.repository.df[["c", "l", "h", "o"]], label=["c", "l", "h", "o"])
+		plt.legend()
 		ax.axhline(y=target_price, color="purple")
 		ax.axhline(y=end_price, color="red")
 		ax.scatter([current_time], [current_price], color="red")
@@ -90,7 +125,8 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 			expected_trades: int,
 			expected_orders: int,
 			plot_function: typing.Callable,
-			success_check: typing.Callable
+			success_check: typing.Callable,
+			assert_function: typing.Callable = None
 	):
 		order_function()
 
@@ -111,6 +147,8 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 			if success_check(current_price):
 				self.assertEqual(len(open_trades), expected_trades)
 				self.assertEqual(len(open_orders), expected_orders)
+				if assert_function is not None:
+					assert_function()
 				break
 
 			time.sleep(1)
@@ -149,6 +187,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_buy_stop_order_fill(self):
+		self._setUp()
 		self.__test_order_fill(
 			1.025,
 			units=0.1,
@@ -158,6 +197,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_sell_stop_order_fill(self):
+		self._setUp()
 		self.__test_order_fill(
 			0.995,
 			units=-0.1,
@@ -167,6 +207,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_buy_limit_order_fill(self):
+		self._setUp()
 		self.__test_order_fill(
 			0.995,
 			units=0.1,
@@ -176,6 +217,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_sell_limit_order_fill(self):
+		self._setUp()
 		self.__test_order_fill(
 			1.05,
 			units=-0.1,
@@ -217,6 +259,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_buy_trade_with_take_profit(self):
+		self._setUp()
 		self.__test_trade_with_triggers(
 			take_profit_return=1.025,
 			stop_loss_return=None,
@@ -226,6 +269,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_buy_trade_with_stop_loss(self):
+		self._setUp()
 		self.__test_trade_with_triggers(
 			take_profit_return=None,
 			stop_loss_return=0.975,
@@ -235,6 +279,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_sell_trade_with_take_profit(self):
+		self._setUp()
 		self.__test_trade_with_triggers(
 			take_profit_return=0.975,
 			stop_loss_return=None,
@@ -244,6 +289,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_sell_trade_with_stop_loss(self):
+		self._setUp()
 		self.__test_trade_with_triggers(
 			take_profit_return=None,
 			stop_loss_return=1.025,
@@ -301,6 +347,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_buy_stop_loss_priority_over_sell_stop_order(self):
+		self._setUp()
 		self.__test_trade_trigger_priority(
 			take_profit_return=None,
 			stop_loss_return=0.975,
@@ -313,6 +360,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_buy_take_profit_priority_over_sell_limit_order(self):
+		self._setUp()
 		self.__test_trade_trigger_priority(
 			take_profit_return=1.025,
 			stop_loss_return=None,
@@ -325,6 +373,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_sell_stop_loss_priority_over_buy_stop_order(self):
+		self._setUp()
 		self.__test_trade_trigger_priority(
 			take_profit_return=None,
 			stop_loss_return=1.025,
@@ -337,6 +386,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		)
 
 	def test_sell_take_profit_priority_over_buy_limit_order(self):
+		self._setUp()
 		self.__test_trade_trigger_priority(
 			take_profit_return=0.975,
 			stop_loss_return=None,
@@ -346,4 +396,69 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 			order_units=0.1,
 			end_price_callback=lambda order_price: order_price,
 			success_check=lambda current_price, end_price: current_price < end_price
+		)
+
+	def test_single_exceptional_wide_candle(self):
+
+		def order_function():
+			upper_bound, lower_bound = UPPER_BOUND, LOWER_BOUND
+
+			long_order = self.manager.place_order(
+				account=self.account,
+				instrument=self.instrument,
+				units=0.1,
+				price=upper_bound,
+				stop_loss=lower_bound,
+				order_type=TriggerOrder.Type.STOP
+			)
+			logger.info(f"Placed long_order@{upper_bound} with stop_loss@{lower_bound}")
+
+			short_order = self.manager.place_order(
+				account=self.account,
+				instrument=self.instrument,
+				units=-0.1,
+				price=lower_bound,
+				stop_loss=upper_bound,
+				order_type=TriggerOrder.Type.STOP
+			)
+			logger.info(f"Placed short_order@{lower_bound} with stop_loss@{upper_bound}")
+
+		def assert_function():
+			open_trades = Trade.objects.filter(account=self.account, close_time=None)
+			self.assertEqual(len(open_trades), 1)
+			trade = open_trades[0]
+			self.assertAlmostEqual(trade.price, LOWER_BOUND)
+			self.assertAlmostEqual(trade.stop_loss, UPPER_BOUND)
+			logger.info(f"Assertion Successful")
+			logger.info(f"Trade(units={trade.units}, price={trade.price}, stop_loss={trade.stop_loss}, unrealize_pl={self.manager.get_unrealized_pl(trade)}) ")
+
+		def success_function(*args, **kwargs):
+			return self.repository.get_datetime() > end_time
+
+		CONSTANT_VALUES = (1.0, 0.9998, 1.0002, 0.9999)
+		EXCEPTION_VALUES = (0.9997, 0.998, 1.002, 1.0)
+		PLACEMENT = 0.75
+		END_PLACEMENT = 0.8
+		SIZE = 100
+
+		UPPER_BOUND, LOWER_BOUND = 1.001, 0.999
+
+		self._setUp(generator=self.__create_expception_value_generator(
+			constant_values=CONSTANT_VALUES,
+			exception_values=EXCEPTION_VALUES,
+			placement=PLACEMENT
+		), size=SIZE)
+
+		start_time = self.repository.get_datetime()
+		end_time = start_time + timedelta(minutes=int(END_PLACEMENT*SIZE/2))
+		logger.info(f"Start Time: {start_time}, End Time: {end_time}")
+
+		self.__test_order(
+			order_function=order_function,
+			expected_orders=1,
+			expected_trades=1,
+			plot_function=lambda ax, current_price, current_time:  self.__plot_price(ax, current_price, current_time,
+																					UPPER_BOUND, LOWER_BOUND),
+			success_check=success_function,
+			assert_function=assert_function
 		)
