@@ -34,6 +34,7 @@ class TradeManagerDaemon:
 		self.__same_candle_trigger = same_candle_trigger
 		self.__infinite_trigger_liquidity = infinite_trigger_liquidity
 		self.__price_point_smoothing_n = price_point_smoothing_n
+		self.__processed_candlesticks_store: typing.Dict[Instrument, Candlestick] = None
 		logger.info(
 			f"Initialized {self.__class__.__name__} with manager={manager.__class__.__name__}, "
 			f"sleep_time={sleep_time}, same_candle_trigger={same_candle_trigger}, infinite_trigger_liquidity={infinite_trigger_liquidity}, "
@@ -173,11 +174,25 @@ class TradeManagerDaemon:
 		for order in orders:
 			self.__monitor_order(order, price=price_points[order.instrument], candlestick=candlesticks[order.instrument])
 
+	def __is_candlesticks_processed(self, candlesticks: typing.Dict[Instrument, Candlestick]) -> bool:
+
+		if self.__processed_candlesticks_store is None:
+			return False
+
+		return any([
+			candlesticks.get(instrument).time <= self.__processed_candlesticks_store.get(instrument).time
+			for instrument in candlesticks.keys()
+		])
+
 	def __monitor_trigger_orders(self):
 		candlesticks = {
 			instrument: self.__repository.get_latest_candlestick(instrument)
 			for instrument in self.__repository.get_instruments()
 		}
+
+		if self.__is_candlesticks_processed(candlesticks):
+			return
+
 		price_points = {
 			instrument: self.__generate_price_points(cs)
 			for instrument, cs in candlesticks.items()
@@ -203,6 +218,8 @@ class TradeManagerDaemon:
 				previous_price_points=previous_prices,
 				candlesticks=candlesticks
 			)
+
+		self.__processed_candlesticks_store = candlesticks.copy()
 
 	def _step(self):
 		self.__monitor_trigger_orders()

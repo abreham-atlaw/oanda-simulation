@@ -53,7 +53,12 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 
 			return generate_exception_values
 
-	def __create_mock_repository(self, generator: typing.Callable[[pd.DataFrame, int], None], size: int):
+	def __create_mock_repository(
+			self,
+			generator: typing.Callable[[pd.DataFrame, int], None],
+			size: int,
+			delta_multiplier: float
+	):
 		SIZE = size
 		df = pd.DataFrame(columns=["v", "o", "h", "l", "c", "time", "base_currency", "quote_currency"])
 
@@ -65,7 +70,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 			df=df,
 			time_delta=0,
 			spread_cost_percentage_map=settings.SPREAD_COST_PERCENTAGE_MAP,
-			delta_multiplier=120
+			delta_multiplier=delta_multiplier
 		)
 
 	@staticmethod
@@ -73,7 +78,12 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		TriggerOrder.objects.all().delete()
 		Trade.objects.all().delete()
 
-	def _setUp(self, generator=None, size=500):
+	def _setUp(
+			self,
+			generator=None,
+			size=500,
+			delta_multiplier: float = 120
+	):
 		if generator is None:
 			generator = self.__generate_sinusoidal_values
 		self.instrument = ("XAU", "USD")
@@ -84,7 +94,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 			delta_multiplier=1,
 			time_delta=0
 		)
-		self.repository = self.__create_mock_repository(generator=generator, size=size)
+		self.repository = self.__create_mock_repository(generator=generator, size=size, delta_multiplier=delta_multiplier)
 		self.manager = TradeManager(
 			self.repository
 		)
@@ -439,7 +449,8 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 		EXCEPTION_VALUES = (0.9997, 0.998, 1.002, 1.0)
 		PLACEMENT = 0.75
 		END_PLACEMENT = 0.8
-		SIZE = 100
+		SIZE = 12
+		DELTA_MULTIPLIER = 15
 
 		UPPER_BOUND, LOWER_BOUND = 1.001, 0.999
 
@@ -447,7 +458,7 @@ class TradeManagerDaemonTest(test.TransactionTestCase):
 			constant_values=CONSTANT_VALUES,
 			exception_values=EXCEPTION_VALUES,
 			placement=PLACEMENT
-		), size=SIZE)
+		), size=SIZE, delta_multiplier=DELTA_MULTIPLIER)
 
 		start_time = self.repository.get_datetime()
 		end_time = start_time + timedelta(minutes=int(END_PLACEMENT*SIZE/2))
